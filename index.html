@@ -897,6 +897,18 @@
         </div>
 
         <div class="section-gap">
+          <div class="card">
+            <div class="flex-between" style="margin-bottom:10px">
+              <div class="card-title" style="margin:0">🤖 AI Trade Tahlili</div>
+              <button class="btn btn-outline" style="padding:5px 12px;font-size:11.5px" onclick="reRunLastAIFeedback()">↺ Qayta tahlil</button>
+            </div>
+            <div id="ai-feedback-text" style="font-size:13.5px;line-height:1.7;white-space:pre-wrap;color:var(--text-dim)">
+              Bitim qo'shganingizdan keyin AI sizning savdoyingiz haqida qisqa fikr-mulohaza yozadi.
+            </div>
+          </div>
+        </div>
+
+        <div class="section-gap">
           <div class="grid-21">
             <div class="card">
               <div class="card-title">📈 Portfel Dinamikasi</div>
@@ -1421,6 +1433,16 @@
 
       <!-- ════ ANALYTICS ════ -->
       <div class="page" id="page-analytics">
+        <div class="card" style="margin-bottom:20px">
+          <div class="flex-between" style="margin-bottom:10px">
+            <div class="card-title" style="margin:0">🧠 AI Haftalik Murabbiy</div>
+            <button class="btn btn-primary" style="padding:7px 16px;font-size:12.5px" id="weekly-ai-btn" onclick="generateWeeklyAICoach()">🧠 Hisobotni Yaratish</button>
+          </div>
+          <div id="weekly-ai-text" style="font-size:13.5px;line-height:1.75;white-space:pre-wrap;color:var(--text-dim)">
+            Oxirgi 7 kunlik bitimlaringizni AI tahlil qilib, eng katta zaiflik nuqtangizni va kuchli tomonlaringizni topib beradi.
+          </div>
+        </div>
+
         <div class="grid-4" style="margin-bottom:20px">
           <div class="card stat-card">
             <div class="stat-glow" style="background:var(--green)"></div>
@@ -1792,6 +1814,7 @@ function saveTrade() {
   renderAnalytics();
   renderGoals();
   showToast('✅ Bitim saqlandi!', 'success');
+  getAITradeFeedback(t);
 }
 
 let currentTradeViewId = null;
@@ -2958,6 +2981,105 @@ function renderEconCalendar() {
       <div style="font-size:13px;font-weight:600">${ev.title}</div>
       <div style="font-size:11.5px;color:var(--text-muted);margin-top:3px">${impactLabel[ev.impact]} • ${ev.when}</div>
     </div>`).join('');
+}
+
+// ─── AI TRADE FEEDBACK (Claude API) ───
+const sessionLabelsAI = {asia:'Asia',london:'London',ny:'New York',overlap:'London/NY Overlap'};
+async function callClaude(prompt) {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1000,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+  const data = await response.json();
+  const text = (data.content||[]).map(c=>c.text||'').join('\n').trim();
+  return text || "Javob olinmadi.";
+}
+
+let lastAITradeId = null;
+async function getAITradeFeedback(t) {
+  lastAITradeId = t.id;
+  const box = document.getElementById('ai-feedback-text');
+  if(!box) return;
+  box.textContent = '🤖 AI tahlil qilmoqda...';
+  try {
+    const recent = trades.slice(0, 15).filter(x=>x.id!==t.id);
+    const overallWR = trades.length ? Math.round(trades.filter(x=>x.pnl>0).length/trades.length*100) : 0;
+    const emotionLossMap = {};
+    trades.forEach(x=>{ if(x.pnl<0){ emotionLossMap[x.emotion]=(emotionLossMap[x.emotion]||0)+1; } });
+    const worstEmotion = Object.keys(emotionLossMap).sort((a,b)=>emotionLossMap[b]-emotionLossMap[a])[0];
+
+    const prompt = `Sen tajribali forex/trading murabbiysisan. Quyidagi yopilgan bitim haqida O'ZBEK TILIDA, 3-5 jumlali, qisqa va aniq fikr-mulohaza yoz. Hissiyot, risk/reward, sessiya va teglarga e'tibor ber. Agar pattern (masalan, ma'lum hissiyot bilan ko'p zarar qilish) ko'rinsa, shuni ayt. Faqat matn yoz, sarlavha yoki markdown belgilarisiz.
+
+Yopilgan bitim:
+- Juftlik: ${t.symbol}, Yo'nalish: ${t.dir}
+- Kirish: ${t.entry}, Chiqish: ${t.exit}, Lot: ${t.lot}
+- P&L: ${t.pnl}
+- Strategiya: ${t.strategy}
+- Hissiyot: ${t.emotion}
+- Sessiya: ${sessionLabelsAI[t.session]||t.session}
+- Teglar: ${(t.tags||[]).join(', ')||'yo\'q'}
+- Izoh: ${t.note||'yo\'q'}
+
+Umumiy hisob konteksti:
+- Umumiy win rate: ${overallWR}%
+- Eng ko'p zarar bilan bog'liq hissiyot (tarixiy): ${worstEmotion||'ma\'lumot yo\'q'}
+- Oxirgi bitimlar soni: ${recent.length}`;
+
+    const text = await callClaude(prompt);
+    if(lastAITradeId===t.id) box.textContent = text;
+  } catch(err) {
+    if(lastAITradeId===t.id) box.textContent = '⚠️ AI tahlil olishda xatolik yuz berdi. Internet aloqasini tekshiring.';
+  }
+}
+function reRunLastAIFeedback() {
+  if(!trades.length) { showToast('Hali bitim yo\'q', 'warning'); return; }
+  getAITradeFeedback(trades[0]);
+}
+
+// ─── AI WEEKLY COACH ───
+async function generateWeeklyAICoach() {
+  const btn = document.getElementById('weekly-ai-btn');
+  const box = document.getElementById('weekly-ai-text');
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7*24*60*60*1000);
+  const weekTrades = trades.filter(t=>{
+    const parts = t.date.split('.');
+    if(parts.length!==3) return false;
+    const d = new Date(parts[2], parts[1]-1, parts[0]);
+    return d >= weekAgo && d <= now;
+  });
+  if(!weekTrades.length) { showToast('Oxirgi 7 kunda bitim topilmadi', 'warning'); return; }
+  btn.disabled = true; btn.textContent = '⏳ Tahlil qilinmoqda...';
+  box.textContent = '🤖 AI haftalik hisobotni tayyorlamoqda...';
+  try {
+    const total = weekTrades.reduce((s,t)=>s+t.pnl,0);
+    const wins = weekTrades.filter(t=>t.pnl>0).length;
+    const wr = Math.round(wins/weekTrades.length*100);
+    const compact = weekTrades.map(t=>`${t.symbol} ${t.dir} pnl:${t.pnl} emotion:${t.emotion} session:${t.session||'-'} tags:[${(t.tags||[]).join('/')}] strategy:${t.strategy}`).join('\n');
+
+    const prompt = `Sen tajribali trading murabbiysisan. Quyida traderning oxirgi 7 kunlik bitimlari ro'yxati berilgan. O'ZBEK TILIDA quyidagi tuzilishda qisqa hisobot yoz (markdown belgilarisiz, oddiy matn, har bandni yangi qatordan boshla):
+1) Umumiy holat (1-2 jumla)
+2) Eng katta zaiflik nuqtasi (masalan, qaysi hissiyot yoki sessiyada ko'proq zarar qilingan)
+3) Kuchli tomoni (nima yaxshi ketyapti)
+4) Keyingi hafta uchun 1 ta aniq tavsiya
+
+Statistika: jami bitim ${weekTrades.length} ta, umumiy P&L ${total.toFixed(2)}, win rate ${wr}%.
+
+Bitimlar:
+${compact}`;
+
+    const text = await callClaude(prompt);
+    box.textContent = text;
+  } catch(err) {
+    box.textContent = '⚠️ AI hisobot olishda xatolik yuz berdi. Internet aloqasini tekshiring.';
+  } finally {
+    btn.disabled = false; btn.textContent = '🧠 Hisobotni Yaratish';
+  }
 }
 
 // ─── JSON BACKUP ───
