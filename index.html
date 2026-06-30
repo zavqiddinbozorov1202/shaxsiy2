@@ -1959,8 +1959,8 @@ function renderDashboard() {
   const wins  = trades.filter(t=>t.pnl>0);
   const loss  = trades.filter(t=>t.pnl<0);
   const wr    = trades.length ? Math.round(wins.length/trades.length*100) : 0;
-  const best  = trades.length ? Math.max(...trades.map(t=>t.pnl)) : 0;
-  const worst = trades.length ? Math.min(...trades.map(t=>t.pnl)) : 0;
+  const best  = wins.length ? Math.max(...wins.map(t=>t.pnl)) : 0;
+  const worst = loss.length ? Math.min(...loss.map(t=>t.pnl)) : 0;
   const grossW = wins.reduce((s,t)=>s+t.pnl,0);
   const grossL = Math.abs(loss.reduce((s,t)=>s+t.pnl,0));
   const pf     = grossL ? (grossW/grossL) : 0;
@@ -2793,8 +2793,8 @@ function renderAnalytics() {
 
   // Best / worst 5 trades
   const sortedByPnl = [...trades].sort((a,b)=>b.pnl-a.pnl);
-  const bestList = sortedByPnl.slice(0,5);
-  const worstList = sortedByPnl.slice(-5).reverse();
+  const bestList = sortedByPnl.filter(t=>t.pnl>0).slice(0,5);
+  const worstList = sortedByPnl.filter(t=>t.pnl<0).slice(-5).reverse();
   const renderMiniTrade = t => `<div class="flex-between text-sm" style="padding:5px 8px;background:rgba(255,255,255,0.03);border-radius:6px">
     <span class="mono">${t.symbol}</span><span class="${t.pnl>=0?'profit':'loss'}">${fmt(t.pnl)}</span>
   </div>`;
