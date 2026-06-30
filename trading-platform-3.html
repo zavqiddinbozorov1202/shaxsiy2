@@ -1,0 +1,3033 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TraderPro — Shaxsiy Trading Platforma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #070B14;
+    --bg-main: #0A0E1A;
+    --bg-card: #111827;
+    --bg-card2: #162035;
+    --border: rgba(255,255,255,0.07);
+    --border-bright: rgba(0,212,170,0.3);
+    --green: #00D4AA;
+    --green-dim: rgba(0,212,170,0.12);
+    --red: #FF4757;
+    --red-dim: rgba(255,71,87,0.12);
+    --gold: #C9A84C;
+    --gold-dim: rgba(201,168,76,0.12);
+    --blue: #3B82F6;
+    --blue-dim: rgba(59,130,246,0.12);
+    --text: #E8EDF5;
+    --text-muted: #6B7A99;
+    --text-dim: #8899B8;
+    --font: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  body.light-mode {
+    --bg-deep: #F9FAFB;
+    --bg-main: #FFFFFF;
+    --bg-card: #F3F4F6;
+    --bg-card2: #E5E7EB;
+    --border: rgba(0,0,0,0.08);
+    --border-bright: rgba(0,212,170,0.3);
+    --text: #111827;
+    --text-muted: #6B7280;
+    --text-dim: #374151;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg-deep);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── TICKER TAPE ─── */
+  .ticker-wrap {
+    background: linear-gradient(90deg, var(--bg-deep), #0D1425, var(--bg-deep));
+    border-bottom: 1px solid var(--border);
+    height: 36px;
+    overflow: hidden;
+    position: relative;
+  }
+  .ticker-wrap::before, .ticker-wrap::after {
+    content:''; position:absolute; top:0; width:80px; height:100%; z-index:2;
+  }
+  .ticker-wrap::before { left:0; background:linear-gradient(90deg,var(--bg-deep),transparent); }
+  .ticker-wrap::after  { right:0; background:linear-gradient(-90deg,var(--bg-deep),transparent); }
+  .ticker-tape {
+    display:flex; align-items:center; height:100%;
+    animation: ticker 35s linear infinite;
+    width: max-content;
+  }
+  .ticker-item {
+    display:flex; align-items:center; gap:6px;
+    padding: 0 28px; font-family:var(--mono); font-size:12px;
+    white-space:nowrap;
+  }
+  .ticker-item .sym { color:var(--text-dim); font-weight:600; }
+  .ticker-item .price { color:var(--text); }
+  .ticker-item .chg.up { color:var(--green); }
+  .ticker-item .chg.dn { color:var(--red); }
+  .ticker-dot { width:4px; height:4px; border-radius:50%; background:var(--border); }
+  @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+  /* ─── SIDEBAR ─── */
+  .layout { display:flex; min-height:100vh; }
+
+  .sidebar {
+    width: 240px; min-height:100vh;
+    background: linear-gradient(180deg, #0D1628 0%, #0A1020 100%);
+    border-right: 1px solid var(--border);
+    display:flex; flex-direction:column;
+    position:fixed; left:0; top:36px; bottom:0;
+    z-index:100;
+  }
+
+  .logo-area {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    display:flex; align-items:center; gap:10px;
+    text-decoration:none;
+  }
+  .logo-icon {
+    width:36px; height:36px; border-radius:10px;
+    background: linear-gradient(135deg, var(--green), #00A882);
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px;
+  }
+  .logo-text { font-size:17px; font-weight:800; color:var(--text); letter-spacing:-.3px; }
+  .logo-sub { font-size:10px; color:var(--text-muted); font-weight:500; margin-top:1px; }
+
+  .nav-section { padding:16px 12px 0; }
+  .nav-label {
+    font-size:10px; font-weight:700; color:var(--text-muted);
+    letter-spacing:1.2px; text-transform:uppercase;
+    padding: 0 8px 8px;
+  }
+  .nav-item {
+    display:flex; align-items:center; gap:10px;
+    padding: 10px 12px; border-radius:var(--radius-sm);
+    cursor:pointer; transition:all .2s;
+    color:var(--text-dim); font-size:13.5px; font-weight:500;
+    margin-bottom:2px; border:none; background:none; width:100%; text-align:left;
+  }
+  .nav-item:hover { background:rgba(255,255,255,0.05); color:var(--text); }
+  .nav-item.active {
+    background: linear-gradient(90deg, var(--green-dim), transparent);
+    color:var(--green);
+    border-left: 2px solid var(--green);
+    padding-left:10px;
+  }
+  .nav-icon { font-size:16px; width:20px; text-align:center; }
+  .nav-badge {
+    margin-left:auto; background:var(--green); color:#000;
+    font-size:10px; font-weight:700; padding:1px 6px;
+    border-radius:20px; font-family:var(--mono);
+  }
+
+  .sidebar-bottom {
+    margin-top:auto; padding:16px;
+    border-top: 1px solid var(--border);
+  }
+  .user-card {
+    display:flex; align-items:center; gap:10px;
+    padding:10px; border-radius:var(--radius-sm);
+    background:rgba(255,255,255,0.04); cursor:pointer;
+    transition:.2s; border: 1px solid var(--border);
+  }
+  .user-card:hover { background:rgba(255,255,255,0.07); }
+  .avatar {
+    width:34px; height:34px; border-radius:50%;
+    background: linear-gradient(135deg, var(--gold), #E8B84B);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:14px; color:#000;
+  }
+  .user-name { font-size:13px; font-weight:600; }
+  .user-role { font-size:11px; color:var(--text-muted); }
+
+  /* ─── MAIN ─── */
+  .main {
+    margin-left:240px;
+    flex:1; display:flex; flex-direction:column;
+  }
+
+  .topbar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,14,26,0.9);
+    backdrop-filter: blur(20px);
+    position:sticky; top:36px; z-index:90;
+  }
+  .page-title { font-size:20px; font-weight:700; }
+  .page-sub { font-size:12px; color:var(--text-muted); margin-top:1px; }
+
+  .topbar-right { display:flex; align-items:center; gap:12px; }
+  .topbar-btn {
+    display:flex; align-items:center; gap:6px;
+    padding: 7px 14px; border-radius:var(--radius-sm);
+    background:rgba(255,255,255,0.06); border:1px solid var(--border);
+    color:var(--text-dim); font-size:12.5px; font-weight:500;
+    cursor:pointer; transition:.2s; font-family:var(--font);
+  }
+  .topbar-btn:hover { background:rgba(255,255,255,0.1); color:var(--text); }
+  .topbar-btn.primary {
+    background: linear-gradient(135deg, var(--green), #00B894);
+    border-color:transparent; color:#000; font-weight:600;
+  }
+
+  .content { padding:24px 28px; }
+
+  /* ─── PAGES ─── */
+  .page { display:none; animation: fadeIn .3s ease; }
+  .page.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    position:relative; overflow:hidden;
+  }
+  .card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:1px;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);
+  }
+  .card-title {
+    font-size:12px; font-weight:700; color:var(--text-muted);
+    letter-spacing:.8px; text-transform:uppercase; margin-bottom:12px;
+    display:flex; align-items:center; gap:8px;
+  }
+
+  /* ─── GRID ─── */
+  .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  .grid-5 { display:grid; grid-template-columns:repeat(5,1fr); gap:16px; }
+  .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+  .grid-21 { display:grid; grid-template-columns:2fr 1fr; gap:16px; }
+  .grid-12 { display:grid; grid-template-columns:1fr 2fr; gap:16px; }
+
+  /* ─── STAT CARDS ─── */
+  .stat-card { position:relative; overflow:hidden; }
+  .stat-glow {
+    position:absolute; top:-30px; right:-30px; width:100px; height:100px;
+    border-radius:50%; opacity:.15; filter:blur(30px);
+  }
+  .stat-label { font-size:11.5px; color:var(--text-muted); font-weight:500; margin-bottom:6px; }
+  .stat-value {
+    font-family:var(--mono); font-size:26px; font-weight:600;
+    line-height:1; margin-bottom:8px;
+  }
+  .stat-change {
+    display:inline-flex; align-items:center; gap:4px;
+    font-family:var(--mono); font-size:12px; font-weight:600;
+    padding: 3px 8px; border-radius:20px;
+  }
+  .stat-change.up { background:var(--green-dim); color:var(--green); }
+  .stat-change.dn { background:var(--red-dim); color:var(--red); }
+
+  /* ─── CHART ─── */
+  .chart-wrap { position:relative; }
+  canvas.chart { width:100%; display:block; }
+
+  /* ─── TABLE ─── */
+  .data-table { width:100%; border-collapse:collapse; }
+  .data-table th {
+    text-align:left; padding:10px 14px;
+    font-size:11px; font-weight:700; color:var(--text-muted);
+    letter-spacing:.8px; text-transform:uppercase;
+    border-bottom:1px solid var(--border);
+  }
+  .data-table td {
+    padding:12px 14px; font-size:13px;
+    border-bottom:1px solid rgba(255,255,255,0.03);
+    transition:.15s;
+  }
+  .data-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .data-table td:first-child { font-weight:600; }
+  .badge {
+    display:inline-flex; align-items:center; gap:4px;
+    padding:3px 9px; border-radius:20px; font-size:11.5px; font-weight:600;
+    font-family:var(--mono);
+  }
+  .badge.buy  { background:var(--green-dim); color:var(--green); }
+  .badge.sell { background:var(--red-dim); color:var(--red); }
+  .badge.open { background:var(--blue-dim); color:var(--blue); }
+  .badge.closed { background:rgba(255,255,255,0.06); color:var(--text-muted); }
+
+  /* ─── FORM ─── */
+  .form-group { margin-bottom:16px; }
+  .form-label { font-size:12px; font-weight:600; color:var(--text-dim); margin-bottom:6px; display:block; }
+  .form-input, .form-select, .form-textarea {
+    width:100%; padding:10px 14px;
+    background:rgba(255,255,255,0.04); border:1px solid var(--border);
+    border-radius:var(--radius-sm); color:var(--text);
+    font-family:var(--font); font-size:13.5px;
+    transition:.2s; outline:none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color:var(--green); background:rgba(0,212,170,0.04);
+    box-shadow: 0 0 0 3px rgba(0,212,170,0.1);
+  }
+  .form-textarea { resize:vertical; min-height:90px; }
+  .form-select { appearance:none; cursor:pointer; }
+  option { background:#1a2035; }
+
+  .btn {
+    display:inline-flex; align-items:center; justify-content:center; gap:7px;
+    padding:10px 20px; border-radius:var(--radius-sm);
+    font-family:var(--font); font-size:13.5px; font-weight:600;
+    cursor:pointer; transition:.2s; border:none;
+  }
+  .btn-primary {
+    background:linear-gradient(135deg, var(--green), #00B894);
+    color:#000;
+  }
+  .btn-primary:hover { opacity:.9; transform:translateY(-1px); box-shadow:0 6px 20px rgba(0,212,170,0.3); }
+  .btn-outline {
+    background:transparent; color:var(--text);
+    border:1px solid var(--border);
+  }
+  .btn-outline:hover { background:rgba(255,255,255,0.05); }
+  .btn-danger {
+    background:var(--red-dim); color:var(--red);
+    border:1px solid rgba(255,71,87,0.3);
+  }
+
+  /* ─── TRADE LOG ─── */
+  .profit { color:var(--green); font-family:var(--mono); font-weight:600; }
+  .loss   { color:var(--red);   font-family:var(--mono); font-weight:600; }
+  .mono   { font-family:var(--mono); }
+
+  /* ─── LIBRARY ─── */
+  .lib-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .lib-card {
+    border-radius:var(--radius); border:1px solid var(--border);
+    background:var(--bg-card); overflow:hidden; cursor:pointer;
+    transition:.25s; group:1;
+  }
+  .lib-card:hover { border-color:rgba(0,212,170,0.3); transform:translateY(-3px); box-shadow:0 12px 40px rgba(0,0,0,0.4); }
+  .lib-thumb {
+    height:160px; background:linear-gradient(135deg,#162035,#1e2d4a);
+    display:flex; align-items:center; justify-content:center;
+    font-size:48px; position:relative; overflow:hidden;
+  }
+  .lib-thumb img { width:100%; height:100%; object-fit:cover; position:absolute; }
+  .lib-thumb .lib-type {
+    position:absolute; top:10px; right:10px;
+    background:rgba(0,0,0,0.6); backdrop-filter:blur(8px);
+    padding:3px 8px; border-radius:20px; font-size:10px;
+    font-weight:700; color:var(--text-dim);
+  }
+  .lib-body { padding:14px; }
+  .lib-title { font-size:14px; font-weight:600; margin-bottom:5px; }
+  .lib-meta { font-size:11.5px; color:var(--text-muted); }
+  .lib-tags { display:flex; gap:5px; flex-wrap:wrap; margin-top:8px; }
+  .lib-tag {
+    font-size:10.5px; padding:2px 8px; border-radius:20px;
+    background:rgba(255,255,255,0.05); color:var(--text-muted);
+  }
+
+  .upload-zone {
+    border:2px dashed rgba(0,212,170,0.25); border-radius:var(--radius);
+    padding:40px; text-align:center; cursor:pointer;
+    transition:.2s; background:rgba(0,212,170,0.02);
+  }
+  .upload-zone:hover { border-color:var(--green); background:rgba(0,212,170,0.05); }
+  .upload-icon { font-size:36px; margin-bottom:10px; }
+  .upload-text { font-size:14px; font-weight:600; margin-bottom:4px; }
+  .upload-sub  { font-size:12px; color:var(--text-muted); }
+
+  /* ─── CALC ─── */
+  .calc-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .calc-result {
+    font-family:var(--mono); font-size:28px; font-weight:700;
+    padding:16px; text-align:center; border-radius:var(--radius-sm);
+    margin-top:4px;
+  }
+  .calc-result.pos { background:var(--green-dim); color:var(--green); }
+  .calc-result.neg { background:var(--red-dim); color:var(--red); }
+  .calc-result.neu { background:rgba(255,255,255,0.04); color:var(--text); }
+
+  /* ─── STRATEGIES ─── */
+  .strategy-card {
+    border-radius:var(--radius); border:1px solid var(--border);
+    background:var(--bg-card); padding:20px; cursor:pointer;
+    transition:.25s;
+  }
+  .strategy-card:hover { border-color:rgba(0,212,170,0.3); }
+  .strategy-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; }
+  .strategy-name { font-size:16px; font-weight:700; }
+  .strategy-rating { display:flex; gap:2px; }
+  .star { color:var(--gold); font-size:13px; }
+  .strategy-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .st-stat { background:rgba(255,255,255,0.03); border-radius:var(--radius-sm); padding:10px; text-align:center; }
+  .st-val { font-family:var(--mono); font-size:16px; font-weight:700; }
+  .st-lbl { font-size:10px; color:var(--text-muted); margin-top:2px; }
+
+  /* ─── MINI CHART ─── */
+  .sparkline { width:100%; height:40px; }
+
+  /* ─── PROGRESS ─── */
+  .progress-bar { height:6px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden; }
+  .progress-fill { height:100%; border-radius:3px; transition:width 1s ease; }
+
+  /* ─── TABS ─── */
+  .tabs { display:flex; gap:4px; margin-bottom:20px; border-bottom:1px solid var(--border); }
+  .tab {
+    padding:9px 18px; font-size:13px; font-weight:500;
+    color:var(--text-muted); cursor:pointer; border:none;
+    background:none; border-bottom:2px solid transparent;
+    margin-bottom:-1px; transition:.15s; font-family:var(--font);
+  }
+  .tab:hover { color:var(--text); }
+  .tab.active { color:var(--green); border-bottom-color:var(--green); }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.7);
+    backdrop-filter:blur(8px); z-index:1000;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:.25s;
+  }
+  .modal-overlay.open { opacity:1; pointer-events:all; }
+  .modal {
+    background:var(--bg-card); border:1px solid var(--border);
+    border-radius:18px; width:520px; max-width:90vw;
+    padding:28px; transform:scale(.95); transition:.25s;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+  }
+  .modal-overlay.open .modal { transform:scale(1); }
+  .modal-title { font-size:18px; font-weight:700; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; }
+  .modal-close { background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer; padding:4px 8px; border-radius:6px; }
+  .modal-close:hover { background:rgba(255,255,255,0.07); color:var(--text); }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width:5px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.2); }
+
+  /* ─── PULSE DOT ─── */
+  .pulse-dot {
+    width:8px; height:8px; border-radius:50%;
+    background:var(--green); position:relative; display:inline-block;
+  }
+  .pulse-dot::after {
+    content:''; position:absolute; inset:-4px; border-radius:50%;
+    background:var(--green); opacity:.3;
+    animation: pulse 2s ease infinite;
+  }
+  @keyframes pulse { 0%,100%{transform:scale(1);opacity:.3} 50%{transform:scale(2);opacity:0} }
+
+  .section-gap { margin-top:20px; }
+  .flex-between { display:flex; align-items:center; justify-content:space-between; }
+  .flex-center  { display:flex; align-items:center; }
+  .gap-8  { gap:8px; }
+  .gap-12 { gap:12px; }
+  .mt-4   { margin-top:4px; }
+  .mt-8   { margin-top:8px; }
+  .mt-16  { margin-top:16px; }
+  .mt-20  { margin-top:20px; }
+  .text-green { color:var(--green); }
+  .text-red   { color:var(--red); }
+  .text-gold  { color:var(--gold); }
+  .text-muted { color:var(--text-muted); }
+  .text-sm    { font-size:12px; }
+  .fw-700     { font-weight:700; }
+  .divider    { height:1px; background:var(--border); margin:16px 0; }
+
+  /* ─── TOAST NOTIFICATIONS ─── */
+  .toast { position:fixed; bottom:20px; right:20px; background:var(--bg-card); border:1px solid var(--border);
+    border-radius:var(--radius); padding:16px 20px; color:var(--text); z-index:2000;
+    animation: slideInUp .3s ease; box-shadow: var(--shadow); max-width:400px; }
+  .toast.success { border-left:4px solid var(--green); background:rgba(0,212,170,0.08); }
+  .toast.error { border-left:4px solid var(--red); background:rgba(255,71,87,0.08); }
+  .toast.warning { border-left:4px solid var(--gold); background:rgba(201,168,76,0.08); }
+  @keyframes slideInUp { from { transform:translateY(100px); opacity:0; } to { transform:none; opacity:1; } }
+
+  /* ─── MODE TOGGLE ─── */
+  .mode-toggle { background:none; border:1px solid var(--border); color:var(--text-dim); width:36px; height:36px;
+    border-radius:50%; cursor:pointer; font-size:16px; transition:.2s; display:flex; align-items:center; justify-content:center; }
+  .mode-toggle:hover { background:rgba(255,255,255,0.07); color:var(--text); }
+</style>
+</head>
+<body>
+
+<!-- TICKER TAPE -->
+<div class="ticker-wrap">
+  <div class="ticker-tape" id="ticker"></div>
+</div>
+
+<!-- ADD TRADE MODAL -->
+<div class="modal-overlay" id="tradeModal">
+  <div class="modal">
+    <div class="modal-title">
+      ➕ Yangi Bitim
+      <button class="modal-close" onclick="closeModal('tradeModal')">✕</button>
+    </div>
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">Juftlik / Aktiv</label>
+        <input class="form-input" id="m-symbol" placeholder="EUR/USD, BTC/USDT...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Yo'nalish</label>
+        <select class="form-select" id="m-dir">
+          <option value="BUY">📈 BUY (Long)</option>
+          <option value="SELL">📉 SELL (Short)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kirish narxi</label>
+        <input class="form-input" id="m-entry" type="number" placeholder="0.00000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Chiqish narxi</label>
+        <input class="form-input" id="m-exit" type="number" placeholder="0.00000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lot / Hajm</label>
+        <input class="form-input" id="m-lot" type="number" placeholder="0.10">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Foyda / Zarar ($)</label>
+        <input class="form-input" id="m-pnl" type="number" placeholder="+120.50">
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">Strategiya</label>
+        <select class="form-select" id="m-strat">
+          <option>Trend Following</option>
+          <option>Support & Resistance</option>
+          <option>Breakout</option>
+          <option>Scalping</option>
+          <option>Boshqa</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hissiyot</label>
+        <select class="form-select" id="m-emotion">
+          <option value="calm">😌 Xotirjam</option>
+          <option value="confident">💪 Ishonchli</option>
+          <option value="fomo">⚡ FOMO</option>
+          <option value="fear">😟 Qo'rquv</option>
+          <option value="greed">🤑 Ochko'zlik</option>
+          <option value="revenge">😤 Qasos (revenge)</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">Savdo Sessiyasi</label>
+        <select class="form-select" id="m-session">
+          <option value="asia">🌏 Asia</option>
+          <option value="london">🇬🇧 London</option>
+          <option value="ny">🇺🇸 New York</option>
+          <option value="overlap">🔁 London/NY Overlap</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Teglar (vergul bilan)</label>
+        <input class="form-input" id="m-tags" placeholder="FVG, Order Block, Liquidity Sweep">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Izoh</label>
+      <textarea class="form-textarea" id="m-note" placeholder="Bu bitim haqida qisqacha..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Chart Skrinshoti (ixtiyoriy)</label>
+      <div class="upload-zone" onclick="document.getElementById('m-shot').click()">
+        <div id="m-shot-preview" class="upload-icon">🖼️</div>
+        <div class="upload-text">Skrinshot tanlash</div>
+        <div class="upload-sub">PNG, JPG — chart skrini</div>
+      </div>
+      <input type="file" id="m-shot" style="display:none" accept="image/*" onchange="previewTradeShot(this)">
+    </div>
+    <div class="flex-between mt-16">
+      <button class="btn btn-outline" onclick="closeModal('tradeModal')">Bekor</button>
+      <button class="btn btn-primary" onclick="saveTrade()">💾 Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW LIBRARY ITEM MODAL -->
+<div class="modal-overlay" id="viewModal">
+  <div class="modal" style="width:700px;max-width:95vw">
+    <div class="modal-title">
+      <span id="vm-title">Material</span>
+      <button class="modal-close" onclick="closeModal('viewModal')">✕</button>
+    </div>
+    <div id="vm-img-wrap" style="display:none;margin-bottom:16px;text-align:center">
+      <img id="vm-img" src="" style="max-width:100%;max-height:420px;border-radius:10px;border:1px solid var(--border)">
+    </div>
+    <div id="vm-file-wrap" style="display:none;margin-bottom:16px">
+      <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:32px">📎</span>
+        <div>
+          <div id="vm-fname" style="font-weight:600"></div>
+          <div class="text-muted text-sm">Fayl yuklangan</div>
+        </div>
+        <button class="btn btn-primary" style="margin-left:auto;padding:7px 14px" onclick="downloadFile()">⬇️ Yuklab olish</button>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-bottom:14px;gap:10px">
+      <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:12px">
+        <div class="text-muted text-sm">Kategoriya</div>
+        <div id="vm-cat" class="fw-700 mt-4" style="font-size:18px"></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:12px">
+        <div class="text-muted text-sm">Sana</div>
+        <div id="vm-date" class="fw-700 mt-4"></div>
+      </div>
+    </div>
+    <div id="vm-desc-wrap" style="margin-bottom:14px">
+      <div class="form-label">Tavsif</div>
+      <div id="vm-desc" style="background:rgba(255,255,255,0.03);border-radius:8px;padding:12px;line-height:1.6;font-size:13.5px"></div>
+    </div>
+    <div id="vm-tags-wrap">
+      <div class="lib-tags" id="vm-tags"></div>
+    </div>
+    <div class="flex-between mt-16">
+      <button class="btn btn-danger" onclick="deleteCurrentLib()">🗑️ O'chirish</button>
+      <button class="btn btn-outline" onclick="closeModal('viewModal')">Yopish</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW TRADE MODAL -->
+<div class="modal-overlay" id="tradeViewModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-title">
+      <span id="tv-symbol">Bitim</span>
+      <button class="modal-close" onclick="closeModal('tradeViewModal')">✕</button>
+    </div>
+    <div id="tv-shot-wrap" style="display:none;margin-bottom:14px;text-align:center">
+      <img id="tv-shot" src="" style="max-width:100%;max-height:320px;border-radius:10px;border:1px solid var(--border)">
+    </div>
+    <div class="grid-3" style="margin-bottom:14px;gap:10px">
+      <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:12px;text-align:center">
+        <div class="text-muted text-sm">P&L</div>
+        <div id="tv-pnl" class="fw-700 mt-4" style="font-size:18px"></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:12px;text-align:center">
+        <div class="text-muted text-sm">Sessiya</div>
+        <div id="tv-session" class="fw-700 mt-4" style="font-size:14px"></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:12px;text-align:center">
+        <div class="text-muted text-sm">Sana</div>
+        <div id="tv-date" class="fw-700 mt-4" style="font-size:14px"></div>
+      </div>
+    </div>
+    <div class="lib-tags" id="tv-tags" style="margin-bottom:14px"></div>
+    <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:12px;line-height:1.6;font-size:13.5px;margin-bottom:14px" id="tv-note"></div>
+    <div class="flex-between">
+      <button class="btn btn-danger" onclick="deleteCurrentTradeView()">🗑️ O'chirish</button>
+      <button class="btn btn-outline" onclick="closeModal('tradeViewModal')">Yopish</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT STRATEGY MODAL -->
+<div class="modal-overlay" id="stratModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-title">
+      <span id="strat-modal-title">⚡ Yangi Strategiya</span>
+      <button class="modal-close" onclick="closeModal('stratModal')">✕</button>
+    </div>
+    <div class="grid-2">
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Strategiya Nomi</label>
+        <input class="form-input" id="st-name" placeholder="Masalan: EMA Crossover">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Turi</label>
+        <select class="form-select" id="st-type">
+          <option value="trend">📈 Trend</option>
+          <option value="scalping">⚡ Scalping</option>
+          <option value="swing">🔄 Swing</option>
+          <option value="reversal">↩️ Reversal</option>
+          <option value="breakout">💥 Breakout</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Risk/Reward (masalan: 1:2)</label>
+        <input class="form-input" id="st-rr" placeholder="1:2">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Win Rate (%)</label>
+        <input class="form-input" id="st-win" type="number" placeholder="60" min="0" max="100">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Teglar (vergul bilan)</label>
+        <input class="form-input" id="st-tags" placeholder="EMA, trend, H4">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Tavsif / Qoidalar</label>
+        <textarea class="form-textarea" id="st-desc" placeholder="Bu strategiyaning kirish/chiqish shartlari..."></textarea>
+      </div>
+    </div>
+    <div class="flex-between mt-16">
+      <button class="btn btn-outline" onclick="closeModal('stratModal')">Bekor</button>
+      <button class="btn btn-primary" onclick="saveStrategy()">💾 Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW STRATEGY MODAL -->
+<div class="modal-overlay" id="stratViewModal">
+  <div class="modal" style="width:580px">
+    <div class="modal-title">
+      <span id="sv-name">Strategiya</span>
+      <button class="modal-close" onclick="closeModal('stratViewModal')">✕</button>
+    </div>
+    <div class="grid-3" style="margin-bottom:16px;gap:10px">
+      <div style="background:rgba(0,212,170,0.07);border:1px solid rgba(0,212,170,0.2);border-radius:10px;padding:14px;text-align:center">
+        <div class="stat-value text-green" id="sv-win" style="font-size:22px">0%</div>
+        <div class="text-muted text-sm">Win Rate</div>
+      </div>
+      <div style="background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:14px;text-align:center">
+        <div class="stat-value text-gold" id="sv-rr" style="font-size:22px">1:2</div>
+        <div class="text-muted text-sm">Risk/Reward</div>
+      </div>
+      <div style="background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:14px;text-align:center">
+        <div class="stat-value" id="sv-trades" style="font-size:22px">0</div>
+        <div class="text-muted text-sm">Bitimlar</div>
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:14px;margin-bottom:14px;line-height:1.7;font-size:13.5px" id="sv-desc"></div>
+    <div class="lib-tags" id="sv-tags" style="margin-bottom:16px"></div>
+    <div style="background:rgba(0,212,170,0.05);border:1px solid rgba(0,212,170,0.15);border-radius:10px;padding:14px;margin-bottom:16px">
+      <div class="card-title" style="margin-bottom:10px">📊 Bu Strategiya Bilan Bitimlar</div>
+      <div id="sv-trades-list" class="text-muted text-sm">—</div>
+    </div>
+    <div class="flex-between">
+      <button class="btn btn-danger" onclick="deleteCurrentStrat()">🗑️ O'chirish</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline" onclick="editCurrentStrat()">✏️ Tahrirlash</button>
+        <button class="btn btn-outline" onclick="closeModal('stratViewModal')">Yopish</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD LIBRARY MODAL -->
+<div class="modal-overlay" id="libModal">
+  <div class="modal">
+    <div class="modal-title">
+      📚 Material Qo'shish
+      <button class="modal-close" onclick="closeModal('libModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Sarlavha</label>
+      <input class="form-input" id="lib-title" placeholder="Material nomi...">
+    </div>
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">Kategoriya</label>
+        <select class="form-select" id="lib-cat">
+          <option value="📊">📊 Tahlil</option>
+          <option value="📈">📈 Strategiya</option>
+          <option value="📰">📰 Yangilik</option>
+          <option value="📖">📖 Kitob</option>
+          <option value="🎓">🎓 Dars</option>
+          <option value="🖼️">🖼️ Rasm/Sxema</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Teglar (vergul bilan)</label>
+        <input class="form-input" id="lib-tags" placeholder="forex, trend, tahlil">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tavsif / Matn</label>
+      <textarea class="form-textarea" id="lib-desc" placeholder="Bu material haqida..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Rasm / Fayl yuklash</label>
+      <div class="upload-zone" onclick="document.getElementById('lib-file').click()">
+        <div id="lib-file-preview" class="upload-icon">🖼️</div>
+        <div class="upload-text">Fayl tanlash yoki shu yerga tashlang</div>
+        <div class="upload-sub">PNG, JPG, PDF, XLSX — 20MB gacha</div>
+      </div>
+      <input type="file" id="lib-file" style="display:none" accept="image/*,.pdf,.xlsx,.docx" onchange="previewFile(this)">
+    </div>
+    <div class="flex-between mt-16">
+      <button class="btn btn-outline" onclick="closeModal('libModal')">Bekor</button>
+      <button class="btn btn-primary" onclick="saveLib()">💾 Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="logo-area">
+      <a class="logo" href="#">
+        <div class="logo-icon">📈</div>
+        <div>
+          <div class="logo-text">TraderPro</div>
+          <div class="logo-sub">Professional Platform</div>
+        </div>
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Asosiy</div>
+      <button class="nav-item active" onclick="nav('dashboard',this)">
+        <span class="nav-icon">🏠</span> Dashboard
+      </button>
+      <button class="nav-item" onclick="nav('journal',this)">
+        <span class="nav-icon">📓</span> Kunlik Jurnal
+        <span class="nav-badge" id="trade-badge">0</span>
+      </button>
+      <button class="nav-item" onclick="nav('library',this)">
+        <span class="nav-icon">📚</span> Kutubxona
+        <span class="nav-badge" id="lib-badge">0</span>
+      </button>
+    </div>
+
+    <div class="nav-section" style="margin-top:8px">
+      <div class="nav-label">Vositalar</div>
+      <button class="nav-item" onclick="nav('calc',this)">
+        <span class="nav-icon">🧮</span> Kalkulyator
+      </button>
+      <button class="nav-item" onclick="nav('checklist',this)">
+        <span class="nav-icon">✅</span> Pre-Trade Tekshiruv
+      </button>
+      <button class="nav-item" onclick="nav('calendar',this)">
+        <span class="nav-icon">📅</span> P&L Kalendar
+      </button>
+      <button class="nav-item" onclick="nav('strategies',this)">
+        <span class="nav-icon">⚡</span> Strategiyalar
+      </button>
+      <button class="nav-item" onclick="nav('goals',this)">
+        <span class="nav-icon">🎯</span> Maqsadlar
+      </button>
+      <button class="nav-item" onclick="nav('analytics',this)">
+        <span class="nav-icon">📊</span> Tahlil
+      </button>
+      <button class="nav-item" onclick="nav('settings',this)">
+        <span class="nav-icon">⚙️</span> Sozlamalar
+      </button>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="avatar" id="user-avatar">T</div>
+        <div>
+          <div class="user-name" id="user-name-display">Trader</div>
+          <div class="user-role">Pro Trader</div>
+        </div>
+        <div class="pulse-dot" style="margin-left:auto"></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="top-title">Dashboard</div>
+        <div class="page-sub" id="top-sub">Bugungi holatingiz</div>
+      </div>
+      <div class="topbar-right">
+        <div class="flex-center gap-8 text-sm text-muted" id="live-time"></div>
+        <button class="mode-toggle" onclick="toggleDarkMode()" title="Qorong'i/Oqarosh">🌙</button>
+        <button class="topbar-btn" onclick="openModal('tradeModal')">➕ Bitim</button>
+        <button class="topbar-btn primary" onclick="nav('journal',document.querySelector('[onclick*=journal]'))">📓 Jurnal</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ════ DASHBOARD ════ -->
+      <div class="page active" id="page-dashboard">
+        <div class="grid-5">
+          <div class="card stat-card">
+            <div class="stat-glow" style="background:var(--blue)"></div>
+            <div class="stat-label">Joriy Balans</div>
+            <div class="stat-value" id="equity-val">$0.00</div>
+            <span class="stat-change up" id="equity-pct">▲ 0.00%</span>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-glow" style="background:var(--green)"></div>
+            <div class="stat-label">Umumiy Foyda</div>
+            <div class="stat-value text-green" id="total-pnl">$0.00</div>
+            <span class="stat-change up" id="total-pct">▲ 0.00%</span>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-glow" style="background:var(--text-dim)"></div>
+            <div class="stat-label">Jami Bitimlar</div>
+            <div class="stat-value" id="total-trades">0</div>
+            <span class="stat-change up" id="win-rate">Win: 0%</span>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-glow" style="background:var(--gold)"></div>
+            <div class="stat-label">Eng Yaxshi Bitim</div>
+            <div class="stat-value text-green" id="best-trade">$0.00</div>
+            <span class="stat-change up">▲ Best</span>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-glow" style="background:var(--red)"></div>
+            <div class="stat-label">Eng Ko'p Zarar</div>
+            <div class="stat-value text-red" id="worst-trade">$0.00</div>
+            <span class="stat-change dn">▼ Worst</span>
+          </div>
+        </div>
+
+        <div class="section-gap">
+          <div class="grid-21">
+            <div class="card">
+              <div class="card-title">📈 Portfel Dinamikasi</div>
+              <canvas id="mainChart" height="200"></canvas>
+            </div>
+            <div class="card">
+              <div class="card-title">🗂️ Asosiy Ko'rsatkichlar</div>
+              <div style="display:flex;flex-direction:column;gap:14px;margin-top:4px">
+                <div>
+                  <div class="flex-between text-sm mb-1">
+                    <span class="text-muted">Win Rate</span>
+                    <span class="text-green fw-700" id="wr-pct2">0%</span>
+                  </div>
+                  <div class="progress-bar"><div class="progress-fill" id="wr-bar" style="width:0%;background:var(--green)"></div></div>
+                </div>
+                <div>
+                  <div class="flex-between text-sm mb-1">
+                    <span class="text-muted">Risk/Reward</span>
+                    <span class="text-gold fw-700" id="rr-ratio">1:0</span>
+                  </div>
+                  <div class="progress-bar"><div class="progress-fill" id="rr-bar" style="width:0%;background:var(--gold)"></div></div>
+                </div>
+                <div>
+                  <div class="flex-between text-sm mb-1">
+                    <span class="text-muted">Profit Factor</span>
+                    <span class="text-green fw-700" id="pf-val">0.00</span>
+                  </div>
+                  <div class="progress-bar"><div class="progress-fill" id="pf-bar" style="width:0%;background:var(--green)"></div></div>
+                </div>
+                <div class="divider"></div>
+                <div class="flex-between text-sm">
+                  <span class="text-muted">G'alaba bitimlar</span>
+                  <span class="text-green fw-700" id="wins-count">0</span>
+                </div>
+                <div class="flex-between text-sm">
+                  <span class="text-muted">Zarar bitimlar</span>
+                  <span class="text-red fw-700" id="loss-count">0</span>
+                </div>
+                <div class="flex-between text-sm">
+                  <span class="text-muted">Kutubxona materiallari</span>
+                  <span class="text-gold fw-700" id="lib-count-dash">0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-gap">
+          <div class="card">
+            <div class="flex-between mb-3">
+              <div class="card-title" style="margin:0">📋 So'nggi Bitimlar</div>
+              <button class="btn btn-outline text-sm" style="padding:6px 12px" onclick="nav('journal',document.querySelector('[onclick*=journal]'))">Barchasi →</button>
+            </div>
+            <table class="data-table" id="recent-trades-table">
+              <thead>
+                <tr>
+                  <th>Juftlik</th><th>Yo'nalish</th><th>Kirish</th><th>Chiqish</th><th>Foyda/Zarar</th><th>Strategiya</th><th>Sana</th>
+                </tr>
+              </thead>
+              <tbody id="recent-tbody">
+                <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted)">Hali bitim yo'q. ➕ Bitim tugmasini bosing</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ JOURNAL ════ -->
+      <div class="page" id="page-journal">
+        <div class="flex-between" style="margin-bottom:20px;gap:12px;flex-wrap:wrap">
+          <div class="tabs" style="margin:0;border:none">
+            <button class="tab active" onclick="switchTab('all',this)">Barchasi</button>
+            <button class="tab" onclick="switchTab('buy',this)">Buy</button>
+            <button class="tab" onclick="switchTab('sell',this)">Sell</button>
+            <button class="tab" onclick="switchTab('win',this)">G'alaba</button>
+            <button class="tab" onclick="switchTab('loss',this)">Zarar</button>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input class="form-input" id="journal-search" placeholder="🔍 Juftlik bo'yicha qidirish..." style="width:220px" oninput="renderJournal()">
+            <button class="btn btn-primary" onclick="openModal('tradeModal')">➕ Yangi Bitim</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th><th>Juftlik</th><th>Yo'nalish</th><th>Kirish</th><th>Chiqish</th><th>Lot</th><th>P&L</th><th>Strategiya</th><th>Sessiya</th><th>Teglar</th><th>Hissiyot</th><th>Izoh</th><th>Sana</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="journal-tbody">
+              <tr><td colspan="14" style="text-align:center;padding:40px;color:var(--text-muted)">📭 Hali bitim qo'shilmagan</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ════ LIBRARY ════ -->
+      <div class="page" id="page-library">
+        <div class="flex-between" style="margin-bottom:20px">
+          <div class="tabs" style="margin:0;border:none">
+            <button class="tab active" onclick="filterLib('all',this)">Barchasi</button>
+            <button class="tab" onclick="filterLib('📊',this)">Tahlil</button>
+            <button class="tab" onclick="filterLib('📈',this)">Strategiya</button>
+            <button class="tab" onclick="filterLib('🖼️',this)">Rasmlar</button>
+            <button class="tab" onclick="filterLib('📖',this)">Kitoblar</button>
+          </div>
+          <button class="btn btn-primary" onclick="openModal('libModal')">➕ Material Qo'shish</button>
+        </div>
+
+        <div class="lib-grid" id="lib-grid">
+          <div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-muted)">
+            📚 Kutubxona bo'sh. Material qo'shing!
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ CALCULATOR ════ -->
+      <div class="page" id="page-calc">
+        <div class="tabs">
+          <button class="tab active" onclick="switchCalc('pos',this)">📍 Pozitsiya Hajmi</button>
+          <button class="tab" onclick="switchCalc('rr',this)">⚖️ Risk/Reward</button>
+          <button class="tab" onclick="switchCalc('pip',this)">📐 Pip Qiymati</button>
+          <button class="tab" onclick="switchCalc('margin',this)">💰 Margin</button>
+          <button class="tab" onclick="switchCalc('kelly',this)">🎯 Kelly Criterion</button>
+          <button class="tab" onclick="switchCalc('ev',this)">📊 Expected Value</button>
+          <button class="tab" onclick="switchCalc('ruin',this)">☠️ Risk of Ruin</button>
+        </div>
+
+        <!-- POS SIZE -->
+        <div id="calc-pos">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">⚙️ Kirish Ma'lumotlari</div>
+              <div class="form-group">
+                <label class="form-label">Hisob Balans ($)</label>
+                <input class="form-input" id="c-balance" type="number" placeholder="10000" oninput="calcPos()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Risk foizi (%)</label>
+                <input class="form-input" id="c-risk" type="number" placeholder="1" oninput="calcPos()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Stop Loss (pip)</label>
+                <input class="form-input" id="c-sl-pip" type="number" placeholder="30" oninput="calcPos()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Pip Qiymati ($)</label>
+                <input class="form-input" id="c-pip-val" type="number" placeholder="10" oninput="calcPos()">
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">📊 Natija</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div>
+                  <div class="form-label">Risk Miqdori</div>
+                  <div class="calc-result neu" id="r-risk">$0.00</div>
+                </div>
+                <div>
+                  <div class="form-label">Lot Hajmi</div>
+                  <div class="calc-result pos" id="r-lot">0.00</div>
+                </div>
+                <div class="divider"></div>
+                <div class="card" style="background:rgba(0,212,170,0.05);border-color:rgba(0,212,170,0.2)">
+                  <div class="text-sm text-muted" style="line-height:1.6">
+                    💡 <strong>Formula:</strong><br>
+                    Risk = Balans × Risk%<br>
+                    Lot = Risk ÷ (SL pip × Pip qiymati)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RR -->
+        <div id="calc-rr" style="display:none">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">⚙️ Narxlar</div>
+              <div class="form-group">
+                <label class="form-label">Kirish Narxi</label>
+                <input class="form-input" id="rr-entry" type="number" placeholder="1.08500" oninput="calcRR()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Stop Loss</label>
+                <input class="form-input" id="rr-sl" type="number" placeholder="1.08200" oninput="calcRR()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Take Profit</label>
+                <input class="form-input" id="rr-tp" type="number" placeholder="1.09200" oninput="calcRR()">
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">📊 Natija</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div>
+                  <div class="form-label">Risk (SL)</div>
+                  <div class="calc-result neg" id="rr-risk-val">0 pip</div>
+                </div>
+                <div>
+                  <div class="form-label">Mukofot (TP)</div>
+                  <div class="calc-result pos" id="rr-rew-val">0 pip</div>
+                </div>
+                <div>
+                  <div class="form-label">Risk/Reward Nisbati</div>
+                  <div class="calc-result pos" id="rr-ratio-val">1 : 0.00</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PIP -->
+        <div id="calc-pip" style="display:none">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">⚙️ Ma'lumotlar</div>
+              <div class="form-group">
+                <label class="form-label">Lot Hajmi</label>
+                <input class="form-input" id="pip-lot" type="number" placeholder="1.0" oninput="calcPip()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Pip Soni</label>
+                <input class="form-input" id="pip-count" type="number" placeholder="50" oninput="calcPip()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Valyuta Kurs</label>
+                <input class="form-input" id="pip-rate" type="number" placeholder="1.08500" oninput="calcPip()">
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">📊 Pip Qiymati</div>
+              <div>
+                <div class="form-label">1 Pip = (Lot × 10$)</div>
+                <div class="calc-result pos" id="pip-result">$0.00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MARGIN -->
+        <div id="calc-margin" style="display:none">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">⚙️ Ma'lumotlar</div>
+              <div class="form-group">
+                <label class="form-label">Lot Hajmi</label>
+                <input class="form-input" id="mg-lot" type="number" placeholder="1.0" oninput="calcMargin()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Leveraj (1:X)</label>
+                <input class="form-input" id="mg-lev" type="number" placeholder="100" oninput="calcMargin()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Valyuta Narxi</label>
+                <input class="form-input" id="mg-price" type="number" placeholder="1.08500" oninput="calcMargin()">
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">📊 Kerakli Margin</div>
+              <div>
+                <div class="form-label">Margin = (Lot×100000×Narx) ÷ Leveraj</div>
+                <div class="calc-result pos" id="mg-result">$0.00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KELLY -->
+        <div id="calc-kelly" style="display:none">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">⚙️ Ma'lumotlar</div>
+              <div class="form-group">
+                <label class="form-label">G'alaba Ehtimoli (%) — Win Rate</label>
+                <input class="form-input" id="kelly-wr" type="number" placeholder="55" min="0" max="100" oninput="calcKelly()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">O'rtacha Foyda ($)</label>
+                <input class="form-input" id="kelly-avgw" type="number" placeholder="100" oninput="calcKelly()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">O'rtacha Zarar ($)</label>
+                <input class="form-input" id="kelly-avgl" type="number" placeholder="100" oninput="calcKelly()">
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">📊 Natija</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div>
+                  <div class="form-label">Optimal Lot (Kelly %)</div>
+                  <div class="calc-result pos" id="kelly-result">0.00%</div>
+                </div>
+                <div class="divider"></div>
+                <div class="card" style="background:rgba(0,212,170,0.05);border-color:rgba(0,212,170,0.2)">
+                  <div class="text-sm text-muted" style="line-height:1.6">
+                    💡 Kelly Formula: <br>
+                    f* = (bp - q) / b<br>
+                    b = Avg Win / Avg Loss<br>
+                    p = Win Rate<br>
+                    q = Loss Rate
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EXPECTED VALUE -->
+        <div id="calc-ev" style="display:none">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">⚙️ Ma'lumotlar</div>
+              <div class="form-group">
+                <label class="form-label">G'alaba Ehtimoli (%)</label>
+                <input class="form-input" id="ev-wr" type="number" placeholder="55" min="0" max="100" oninput="calcEV()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Orta Foyda ($ per bitim)</label>
+                <input class="form-input" id="ev-win" type="number" placeholder="120" oninput="calcEV()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Orta Zarar ($ per bitim)</label>
+                <input class="form-input" id="ev-loss" type="number" placeholder="100" oninput="calcEV()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Bir oyda bitim soni</label>
+                <input class="form-input" id="ev-count" type="number" placeholder="20" oninput="calcEV()">
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">📊 Oylik Kutilgan Qiymat</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div>
+                  <div class="form-label">EV (bir bitim)</div>
+                  <div class="calc-result neu" id="ev-single">$0.00</div>
+                </div>
+                <div>
+                  <div class="form-label">Oylik EV</div>
+                  <div class="calc-result pos" id="ev-monthly">$0.00</div>
+                </div>
+                <div class="divider"></div>
+                <div class="text-sm" id="ev-status" style="color:var(--green)">✅ Ijobiy kutilgan qiymat</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- RISK OF RUIN -->
+        <div id="calc-ruin" style="display:none">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">⚙️ Ma'lumotlar</div>
+              <div class="form-group">
+                <label class="form-label">G'alaba Ehtimoli (%) — Win Rate</label>
+                <input class="form-input" id="ruin-wr" type="number" placeholder="50" min="0" max="100" oninput="calcRuin()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Har bir bitimdagi Risk (% hisobdan)</label>
+                <input class="form-input" id="ruin-risk" type="number" placeholder="2" oninput="calcRuin()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nechta ketma-ket zarardan keyin "ruin" deb hisoblanadi (% hisob yo'qolishi)</label>
+                <input class="form-input" id="ruin-limit" type="number" placeholder="50" min="1" max="100" oninput="calcRuin()">
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">📊 Natija</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div>
+                  <div class="form-label">Risk of Ruin (taxminiy)</div>
+                  <div class="calc-result neg" id="ruin-result">0%</div>
+                </div>
+                <div>
+                  <div class="form-label">Ketma-ket nechta zarar hisobni "ruin" qiladi</div>
+                  <div class="calc-result neu" id="ruin-streak">0 ta</div>
+                </div>
+                <div class="divider"></div>
+                <div class="card" style="background:rgba(255,71,87,0.05);border-color:rgba(255,71,87,0.2)">
+                  <div class="text-sm text-muted" style="line-height:1.6">
+                    💡 Risk of Ruin — ketma-ket zararlar tufayli hisobning belgilangan foizgacha kamayish ehtimoli. Har bir bitimda 1-2% dan ko'p risk qilish RoR'ni keskin oshiradi.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ PRE-TRADE CHECKLIST ════ -->
+      <div class="page" id="page-checklist">
+        <div class="grid-21">
+          <div class="card">
+            <div class="card-title">✅ ICT / Price Action Pre-Trade Tekshiruv Ro'yxati</div>
+            <div id="checklist-items" style="display:flex;flex-direction:column;gap:10px;margin-top:10px"></div>
+            <div class="flex-between mt-16">
+              <button class="btn btn-outline" onclick="resetChecklist()">↺ Tozalash</button>
+              <button class="btn btn-primary" onclick="openModal('tradeModal')">➕ Bitim Qo'shish</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">📈 Tayyorlik Darajasi</div>
+            <div style="text-align:center;margin-top:10px">
+              <div class="calc-result pos" id="checklist-score" style="font-size:34px">0%</div>
+              <div class="text-muted text-sm mt-8" id="checklist-msg">Shartlarni belgilang</div>
+            </div>
+            <div class="divider"></div>
+            <div class="text-sm text-muted" style="line-height:1.7">
+              💡 Tavsiya: kamida 70% shartlar bajarilmaguncha bitim ochmang. Bu hissiyotga asoslangan (FOMO/revenge) savdolarni kamaytiradi.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ P&L KALENDAR ════ -->
+      <div class="page" id="page-calendar">
+        <div class="grid-12">
+          <div class="card">
+            <div class="flex-between" style="margin-bottom:14px">
+              <button class="btn btn-outline" style="padding:6px 12px" onclick="changeCalMonth(-1)">←</button>
+              <div class="card-title" style="margin:0" id="cal-title">—</div>
+              <button class="btn btn-outline" style="padding:6px 12px" onclick="changeCalMonth(1)">→</button>
+            </div>
+            <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">📰 Iqtisodiy Kalendar (Muhim Yangiliklar)</div>
+            <div id="econ-cal-list" style="display:flex;flex-direction:column;gap:10px;margin-top:8px"></div>
+            <div class="text-muted text-sm mt-16">⚠️ Bu ro'yxat namunaviy/statik. Real vaqtdagi yangiliklar uchun ForexFactory yoki Investing.com kalendaridan foydalaning.</div>
+          </div>
+        </div>
+      </div>
+      <div class="page" id="page-strategies">
+        <div class="flex-between" style="margin-bottom:20px">
+          <div class="tabs" style="margin:0;border:none">
+            <button class="tab active" onclick="filterStrat('all',this)">Barchasi</button>
+            <button class="tab" onclick="filterStrat('scalping',this)">Scalping</button>
+            <button class="tab" onclick="filterStrat('swing',this)">Swing</button>
+            <button class="tab" onclick="filterStrat('trend',this)">Trend</button>
+          </div>
+          <button class="btn btn-primary" onclick="openModal('stratModal')">➕ Strategiya Qo'shish</button>
+        </div>
+        <div class="grid-3" id="strat-grid"></div>
+      </div>
+
+      <!-- ════ GOALS / MAQSADLAR ════ -->
+      <div class="page" id="page-goals">
+        <div class="grid-3" style="margin-bottom:20px">
+          <div class="card">
+            <div class="card-title">📅 Kunlik Maqsad ($)</div>
+            <div class="form-group mt-16" style="margin-bottom:10px">
+              <input class="form-input" id="g-daily" type="number" placeholder="100" oninput="saveGoals()">
+            </div>
+            <div class="flex-between text-sm mb-1">
+              <span class="text-muted" id="g-daily-cur">$0.00</span>
+              <span class="text-muted" id="g-daily-pct">0%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="g-daily-bar" style="width:0%;background:var(--green)"></div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">🗓️ Haftalik Maqsad ($)</div>
+            <div class="form-group mt-16" style="margin-bottom:10px">
+              <input class="form-input" id="g-weekly" type="number" placeholder="500" oninput="saveGoals()">
+            </div>
+            <div class="flex-between text-sm mb-1">
+              <span class="text-muted" id="g-weekly-cur">$0.00</span>
+              <span class="text-muted" id="g-weekly-pct">0%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="g-weekly-bar" style="width:0%;background:var(--blue)"></div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">📆 Oylik Maqsad ($)</div>
+            <div class="form-group mt-16" style="margin-bottom:10px">
+              <input class="form-input" id="g-monthly" type="number" placeholder="2000" oninput="saveGoals()">
+            </div>
+            <div class="flex-between text-sm mb-1">
+              <span class="text-muted" id="g-monthly-cur">$0.00</span>
+              <span class="text-muted" id="g-monthly-pct">0%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="g-monthly-bar" style="width:0%;background:var(--gold)"></div></div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:20px">
+          <div class="card">
+            <div class="card-title">🛡️ Kunlik Zarar Limiti</div>
+            <div class="form-group mt-16" style="margin-bottom:10px">
+              <input class="form-input" id="g-maxloss" type="number" placeholder="200" oninput="saveGoals()">
+            </div>
+            <div id="g-loss-status" class="card" style="background:rgba(0,212,170,0.06);border-color:rgba(0,212,170,0.2);margin-top:6px">
+              <div class="flex-between">
+                <span class="text-sm text-muted">Bugungi zarar</span>
+                <span class="fw-700" id="g-loss-cur">$0.00</span>
+              </div>
+              <div class="progress-bar mt-8"><div class="progress-fill" id="g-loss-bar" style="width:0%;background:var(--red)"></div></div>
+              <div class="text-sm mt-8" id="g-loss-msg" style="color:var(--green)">✅ Limit ichida — savdoni davom ettirsa bo'ladi</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">🔥 Streak va Disiplina</div>
+            <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+              <div class="flex-between text-sm">
+                <span class="text-muted">Joriy g'alaba seriyasi</span>
+                <span class="fw-700 text-green" id="g-win-streak">0 kun</span>
+              </div>
+              <div class="flex-between text-sm">
+                <span class="text-muted">Eng uzun seriya</span>
+                <span class="fw-700 text-gold" id="g-best-streak">0 kun</span>
+              </div>
+              <div class="flex-between text-sm">
+                <span class="text-muted">Bugun bitimlar soni</span>
+                <span class="fw-700" id="g-today-count">0</span>
+              </div>
+              <div class="divider"></div>
+              <div class="text-sm text-muted" style="line-height:1.6">
+                💡 Maqsad va limitlar avtomatik saqlanadi. Limitdan oshib ketsangiz, tizim ogohlantirib turadi — bu hissiy/ortiqcha savdodan asraydi.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ ANALYTICS ════ -->
+      <div class="page" id="page-analytics">
+        <div class="grid-4" style="margin-bottom:20px">
+          <div class="card stat-card">
+            <div class="stat-glow" style="background:var(--green)"></div>
+            <div class="stat-label">Umumiy P&L</div>
+            <div class="stat-value" id="an-pnl">$0.00</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-glow" style="background:var(--blue)"></div>
+            <div class="stat-label">Win Rate</div>
+            <div class="stat-value" id="an-wr">0%</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-glow" style="background:var(--gold)"></div>
+            <div class="stat-label">O'rtacha Foyda</div>
+            <div class="stat-value text-green" id="an-avgw">$0.00</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-glow" style="background:var(--red)"></div>
+            <div class="stat-label">O'rtacha Zarar</div>
+            <div class="stat-value text-red" id="an-avgl">$0.00</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px">
+          <div class="flex-between" style="margin-bottom:16px">
+            <div class="card-title" style="margin:0">📈 Kumulyativ P&L Grafigi</div>
+            <div style="display:flex;gap:8px">
+              <button class="topbar-btn" onclick="setChartRange('week',this)" style="padding:5px 12px;font-size:11px">Hafta</button>
+              <button class="topbar-btn" onclick="setChartRange('month',this)" style="padding:5px 12px;font-size:11px">Oy</button>
+              <button class="topbar-btn" onclick="setChartRange('all',this)" style="padding:5px 12px;font-size:11px;background:rgba(0,212,170,0.15);color:var(--green);border-color:rgba(0,212,170,0.3)">Hammasi</button>
+            </div>
+          </div>
+          <canvas id="analyticsChart" height="200"></canvas>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:20px">
+          <div class="card">
+            <div class="card-title">🏆 Strategiya Samaradorligi</div>
+            <div id="top-strats" style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+              <div class="text-muted text-sm">Bitimlar qo'shilgandan keyin ko'rinadi</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">📅 Kunlik Natijalar</div>
+            <div id="daily-analysis" style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+              <div class="text-muted text-sm">Ma'lumot yo'q</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-title">🧠 Psixologik Tahlil (Hissiyot bo'yicha)</div>
+          <div id="emotion-stats" class="grid-3" style="gap:10px;margin-top:10px">
+            <div class="text-muted text-sm">Bitimlarga hissiyot belgilangach ko'rinadi</div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:20px">
+          <div class="card">
+            <div class="card-title">🌍 Sessiya Bo'yicha Samaradorlik</div>
+            <div id="session-stats" style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+              <div class="text-muted text-sm">Ma'lumot yo'q</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">🥇 Eng Yaxshi / 🥶 Eng Yomon 5 Bitim</div>
+            <div class="grid-2" style="gap:14px;margin-top:8px">
+              <div>
+                <div class="text-sm text-green fw-700" style="margin-bottom:8px">Top Foyda</div>
+                <div id="best-trades-list" style="display:flex;flex-direction:column;gap:6px"></div>
+              </div>
+              <div>
+                <div class="text-sm text-red fw-700" style="margin-bottom:8px">Top Zarar</div>
+                <div id="worst-trades-list" style="display:flex;flex-direction:column;gap:6px"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-title">📊 Juftliklar Bo'yicha</div>
+            <div id="symbol-stats" style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+              <div class="text-muted text-sm">Ma'lumot yo'q</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">📆 Hafta Kunlari</div>
+            <canvas id="weekdayChart" height="160"></canvas>
+          </div>
+          <div class="card">
+            <div class="card-title">⚖️ Xavf Ko'rsatkichlari</div>
+            <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px">
+              <div>
+                <div class="flex-between text-sm" style="margin-bottom:5px"><span class="text-muted">Profit Factor</span><span class="fw-700 text-green" id="an-pf">0.00</span></div>
+                <div class="progress-bar"><div class="progress-fill" id="an-pf-bar" style="width:0%;background:var(--green)"></div></div>
+              </div>
+              <div>
+                <div class="flex-between text-sm" style="margin-bottom:5px"><span class="text-muted">Sharpe (taxm.)</span><span class="fw-700 text-gold" id="an-sharpe">0.00</span></div>
+                <div class="progress-bar"><div class="progress-fill" id="an-sharpe-bar" style="width:0%;background:var(--gold)"></div></div>
+              </div>
+              <div>
+                <div class="flex-between text-sm" style="margin-bottom:5px"><span class="text-muted">Max Drawdown</span><span class="fw-700 text-red" id="an-dd">$0.00</span></div>
+                <div class="progress-bar"><div class="progress-fill" id="an-dd-bar" style="width:0%;background:var(--red)"></div></div>
+              </div>
+              <div class="divider"></div>
+              <div class="flex-between text-sm"><span class="text-muted">Jami Bitimlar</span><span class="fw-700" id="an-total">0</span></div>
+              <div class="flex-between text-sm"><span class="text-muted">G'alaba / Zarar</span><span class="fw-700"><span class="text-green" id="an-wins">0</span> / <span class="text-red" id="an-losses">0</span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ SETTINGS ════ -->
+      <div class="page" id="page-settings">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">👤 Profil</div>
+            <div class="form-group mt-16">
+              <label class="form-label">Ism</label>
+              <input class="form-input" id="s-name" placeholder="Ismingiz...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hisob Balans ($)</label>
+              <input class="form-input" id="s-balance" type="number" placeholder="10000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Asosiy Valyuta</label>
+              <select class="form-select" id="s-currency">
+                <option>USD</option><option>EUR</option><option>UZS</option>
+              </select>
+            </div>
+            <button class="btn btn-primary mt-16" onclick="saveSettings()">💾 Saqlash</button>
+          </div>
+          <div class="card">
+            <div class="card-title">⚡ Risk Sozlamalari</div>
+            <div class="form-group mt-16">
+              <label class="form-label">Maksimal Risk (%)</label>
+              <input class="form-input" id="s-maxrisk" type="number" placeholder="2">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Kunlik Zarar Limiti ($)</label>
+              <input class="form-input" id="s-dayloss" type="number" placeholder="500">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Default Leveraj</label>
+              <input class="form-input" id="s-leverage" type="number" placeholder="100">
+            </div>
+            <button class="btn btn-primary mt-16" onclick="saveSettings()">💾 Saqlash</button>
+          </div>
+        </div>
+        <div class="card section-gap">
+          <div class="card-title">💾 JSON Backup / Restore</div>
+          <div class="flex-between mt-16">
+            <div>
+              <div class="fw-700">To'liq backup olish</div>
+              <div class="text-muted text-sm mt-4">Barcha bitimlar, strategiyalar, maqsadlar va sozlamalar</div>
+            </div>
+            <button class="btn btn-outline" onclick="exportJSONBackup()">⬇️ Backup (JSON)</button>
+          </div>
+          <div class="divider"></div>
+          <div class="flex-between">
+            <div>
+              <div class="fw-700">Backup fayldan qaytarish</div>
+              <div class="text-muted text-sm mt-4">Avvalgi ma'lumotlarni to'liq qaytaradi</div>
+            </div>
+            <button class="btn btn-outline" onclick="document.getElementById('backup-import').click()">⬆️ Restore (JSON)</button>
+            <input type="file" id="backup-import" accept=".json" style="display:none" onchange="importJSONBackup(this)">
+          </div>
+        </div>
+        <div class="card section-gap">
+          <div class="card-title">📤 Ma'lumotlarni Eksport / Import</div>
+          <div class="flex-between mt-16">
+            <div>
+              <div class="fw-700">Bitimlarni CSV formatida yuklab olish</div>
+              <div class="text-muted text-sm mt-4">Excel yoki Google Sheets'da ochish uchun</div>
+            </div>
+            <button class="btn btn-outline" onclick="exportTradesCSV()">⬇️ Eksport (CSV)</button>
+          </div>
+          <div class="divider"></div>
+          <div class="flex-between">
+            <div>
+              <div class="fw-700">CSV fayldan bitimlarni import qilish</div>
+              <div class="text-muted text-sm mt-4">symbol,dir,entry,exit,lot,pnl,strategy,note,date ustunlari kerak</div>
+            </div>
+            <button class="btn btn-outline" onclick="document.getElementById('csv-import-input').click()">⬆️ Import (CSV)</button>
+            <input type="file" id="csv-import-input" accept=".csv" style="display:none" onchange="importTradesCSV(this)">
+          </div>
+        </div>
+        <div class="card section-gap">
+          <div class="card-title text-red">⚠️ Xavfli Zona</div>
+          <div class="flex-between mt-16">
+            <div>
+              <div class="fw-700">Barcha ma'lumotlarni o'chirish</div>
+              <div class="text-muted text-sm mt-4">Barcha bitimlar, kutubxona va sozlamalar o'chib ketadi</div>
+            </div>
+            <button class="btn btn-danger" onclick="clearAll()">🗑️ Tozalash</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+// ─── DATA ───
+let trades = JSON.parse(localStorage.getItem('tp-trades') || '[]');
+let library = JSON.parse(localStorage.getItem('tp-library') || '[]');
+let settings = JSON.parse(localStorage.getItem('tp-settings') || '{"name":"Trader","balance":10000}');
+let strategies = JSON.parse(localStorage.getItem('tp-strategies') || JSON.stringify([
+  {id:1001,name:"Trend Following",type:"trend",desc:"EMA va MACD yordamida trend yo'nalishida savdo. Kirish: EMA20 EMA50 ni kesib o'tganda. Chiqish: qarshi signal yoki TP.",win:68,rr:"1:2.5",trades:42,tags:["trend","EMA","MACD"]},
+  {id:1002,name:"Support & Resistance",type:"swing",desc:"Kuchli S/R darajalarida narx reaktsiyasidan foydalanish. Kirish: pin bar yoki engulfing mumkin'da.",win:62,rr:"1:2",trades:28,tags:["S/R","reversal","price action"]},
+  {id:1003,name:"Breakout",type:"breakout",desc:"Konsolidatsiya yoki kanal chegarasini yorib o'tganda kirish. Volume tasdiqlashi shart.",win:55,rr:"1:3",trades:19,tags:["breakout","volatility","volume"]}
+]));
+let goals = JSON.parse(localStorage.getItem('tp-goals') || '{"daily":100,"weekly":500,"monthly":2000,"maxloss":200}');
+let libFiles = {};
+
+// ─── INIT ───
+document.addEventListener('DOMContentLoaded', async () => {
+  initMode();
+  updateUser();
+  updateLiveTime();
+  setInterval(updateLiveTime, 1000);
+  buildTicker();
+  await openDB();
+  await loadAllIDBCache();
+  updateStratSelect();
+  initGoalsInputs();
+  renderDashboard();
+  renderJournal();
+  renderLibrary();
+  renderStrategies();
+  renderAnalytics();
+  setupKeyboardShortcuts();
+});
+
+// ─── KEYBOARD SHORTCUTS ───
+function setupKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    if(e.ctrlKey || e.metaKey) {
+      if(e.key==='n') { e.preventDefault(); openModal('tradeModal'); } // Ctrl+N = New Trade
+      if(e.key==='s') { e.preventDefault(); saveTrade(); } // Ctrl+S = Save
+      if(e.key==='k') { e.preventDefault(); toggleDarkMode(); } // Ctrl+K = Dark/Light
+    }
+    if(e.key==='Escape') { closeModal('tradeModal'); closeModal('libModal'); closeModal('stratModal'); closeModal('viewModal'); closeModal('stratViewModal'); }
+  });
+}
+
+function updateStratSelect() {
+  const sel = document.getElementById('m-strat');
+  if(!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = strategies.map(s=>`<option value="${s.name}">${s.name}</option>`).join('') +
+    '<option value="Boshqa">Boshqa</option>';
+  if(cur) sel.value = cur;
+}
+
+
+function updateUser() {
+  const n = settings.name || 'Trader';
+  document.getElementById('user-name-display').textContent = n;
+  document.getElementById('user-avatar').textContent = n[0].toUpperCase();
+  document.getElementById('s-name').value = n;
+  document.getElementById('s-balance').value = settings.balance || 10000;
+}
+
+function updateLiveTime() {
+  const now = new Date();
+  document.getElementById('live-time').innerHTML =
+    `<span class="pulse-dot" style="display:inline-block"></span>&nbsp;` +
+    now.toLocaleTimeString('uz-UZ') + ' | ' +
+    now.toLocaleDateString('uz-UZ',{weekday:'short',day:'numeric',month:'short'});
+}
+
+// ─── TICKER ───
+const tickers = [
+  {s:'EUR/USD',p:'1.0853',c:'+0.12%',up:true},{s:'GBP/USD',p:'1.2741',c:'-0.08%',up:false},
+  {s:'USD/JPY',p:'157.32',c:'+0.31%',up:true},{s:'XAU/USD',p:'2318.4',c:'+0.54%',up:true},
+  {s:'BTC/USD',p:'67842',c:'+1.23%',up:true},{s:'ETH/USD',p:'3241',c:'+0.87%',up:true},
+  {s:'USD/CHF',p:'0.8934',c:'-0.15%',up:false},{s:'AUD/USD',p:'0.6612',c:'+0.22%',up:true},
+  {s:'USD/CAD',p:'1.3621',c:'-0.09%',up:false},{s:'NZD/USD',p:'0.6103',c:'+0.18%',up:true},
+  {s:'SPX500',p:'5321.4',c:'+0.43%',up:true},{s:'NASDAQ',p:'18924',c:'+0.67%',up:true}
+];
+function buildTicker() {
+  const t = document.getElementById('ticker');
+  const items = [...tickers,...tickers].map(i=>
+    `<div class="ticker-item"><span class="sym">${i.s}</span><span class="price">${i.p}</span><span class="chg ${i.up?'up':'dn'}">${i.c}</span></div><div class="ticker-dot"></div>`
+  ).join('');
+  t.innerHTML = items;
+}
+
+// ─── NAV ───
+const pages = {
+  'dashboard':'Dashboard','journal':'Kunlik Jurnal','library':'Kutubxona',
+  'calc':'Kalkulyator','checklist':'Pre-Trade Tekshiruv','calendar':'P&L Kalendar',
+  'strategies':'Strategiyalar','goals':'Maqsadlar','analytics':'Tahlil','settings':'Sozlamalar'
+};
+const subs = {
+  'dashboard':'Bugungi holatingiz','journal':'Barcha bitimlaringiz',
+  'library':'Bilim va materiallar','calc':'Trading vositalari',
+  'checklist':'Bitim ochishdan oldin tekshiring','calendar':'Kunlik foyda/zarar va yangiliklar',
+  'strategies':'Savdo strategiyalari','goals':'Maqsad va risk nazorati','analytics':'Chuqur tahlil','settings':'Hisob sozlamalari'
+};
+function nav(id, el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('top-title').textContent = pages[id];
+  document.getElementById('top-sub').textContent = subs[id];
+  if(id==='analytics') { renderAnalytics(); setTimeout(()=>{drawAnalyticsChart();drawWeekdayChart();},80); }
+  if(id==='strategies') renderStrategies();
+  if(id==='goals') renderGoals();
+  if(id==='dashboard') { renderDashboard(); setTimeout(drawMainChart, 80); }
+  if(id==='checklist') renderChecklist();
+  if(id==='calendar') { renderCalendar(); renderEconCalendar(); }
+}
+
+// ─── MODAL ───
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}));
+
+// ─── TRADE ───
+let pendingTradeShot = null;
+function previewTradeShot(input) {
+  if(!input.files[0]) return;
+  const file = input.files[0];
+  const reader = new FileReader();
+  reader.onload = e => {
+    pendingTradeShot = e.target.result;
+    document.getElementById('m-shot-preview').innerHTML = `<img src="${e.target.result}" style="max-height:80px;border-radius:8px;margin-bottom:6px"><br><span style="font-size:12px;color:var(--green)">✅ ${file.name}</span>`;
+  };
+  reader.readAsDataURL(file);
+}
+function saveTrade() {
+  const sym = document.getElementById('m-symbol').value.trim();
+  if(!sym) return alert('Juftlik kiriting!');
+  const tagsRaw = document.getElementById('m-tags').value.trim();
+  const tags = tagsRaw ? tagsRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
+  const t = {
+    id: Date.now(),
+    symbol: sym.toUpperCase(),
+    dir: document.getElementById('m-dir').value,
+    entry: parseFloat(document.getElementById('m-entry').value)||0,
+    exit: parseFloat(document.getElementById('m-exit').value)||0,
+    lot: parseFloat(document.getElementById('m-lot').value)||0,
+    pnl: parseFloat(document.getElementById('m-pnl').value)||0,
+    strategy: document.getElementById('m-strat').value,
+    emotion: document.getElementById('m-emotion').value,
+    session: document.getElementById('m-session').value,
+    tags: tags,
+    note: document.getElementById('m-note').value,
+    hasShot: !!pendingTradeShot,
+    date: new Date().toLocaleDateString('uz-UZ')
+  };
+  trades.unshift(t);
+  localStorage.setItem('tp-trades', JSON.stringify(trades));
+  if(pendingTradeShot) { saveFileIDB('shot-'+t.id, pendingTradeShot); idbCache['shot-'+t.id] = pendingTradeShot; }
+  closeModal('tradeModal');
+  ['m-symbol','m-entry','m-exit','m-lot','m-pnl','m-note','m-tags'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('m-emotion').value = 'calm';
+  document.getElementById('m-session').value = 'asia';
+  document.getElementById('m-shot-preview').innerHTML = '🖼️';
+  pendingTradeShot = null;
+  renderDashboard();
+  renderJournal();
+  renderAnalytics();
+  renderGoals();
+  showToast('✅ Bitim saqlandi!', 'success');
+}
+
+let currentTradeViewId = null;
+async function openTradeView(id) {
+  const t = trades.find(x=>x.id===id);
+  if(!t) return;
+  currentTradeViewId = id;
+  document.getElementById('tv-symbol').textContent = `${t.symbol} — ${t.dir}`;
+  document.getElementById('tv-pnl').textContent = fmt(t.pnl);
+  document.getElementById('tv-pnl').className = 'fw-700 mt-4 '+(t.pnl>=0?'text-green':'text-red');
+  const sessionLabels = {asia:'🌏 Asia',london:'🇬🇧 London',ny:'🇺🇸 New York',overlap:'🔁 Overlap'};
+  document.getElementById('tv-session').textContent = sessionLabels[t.session] || '—';
+  document.getElementById('tv-date').textContent = t.date;
+  document.getElementById('tv-tags').innerHTML = (t.tags||[]).map(tag=>`<span class="lib-tag">${tag}</span>`).join('') || '<span class="text-muted text-sm">Teglar yo\'q</span>';
+  document.getElementById('tv-note').textContent = t.note || 'Izoh yo\'q';
+  const shotWrap = document.getElementById('tv-shot-wrap');
+  if(t.hasShot) {
+    let data = idbCache['shot-'+t.id] || await getFileIDB('shot-'+t.id);
+    if(data) { document.getElementById('tv-shot').src = data; shotWrap.style.display = 'block'; }
+    else shotWrap.style.display = 'none';
+  } else shotWrap.style.display = 'none';
+  openModal('tradeViewModal');
+}
+function deleteCurrentTradeView() {
+  if(currentTradeViewId==null) return;
+  deleteTrade(currentTradeViewId);
+  closeModal('tradeViewModal');
+}
+
+function deleteTrade(id) {
+  if(!confirm('Bu bitimni o\'chirasizmi?')) return;
+  const t = trades.find(x=>x.id===id);
+  if(t && t.hasShot) { deleteFileIDB('shot-'+id); delete idbCache['shot-'+id]; }
+  trades = trades.filter(t=>t.id!==id);
+  localStorage.setItem('tp-trades', JSON.stringify(trades));
+  renderDashboard();
+  renderJournal();
+  renderAnalytics();
+  renderGoals();
+}
+
+// ─── RENDER DASHBOARD ───
+function renderDashboard() {
+  const total = trades.reduce((s,t)=>s+t.pnl,0);
+  const wins  = trades.filter(t=>t.pnl>0);
+  const loss  = trades.filter(t=>t.pnl<0);
+  const wr    = trades.length ? Math.round(wins.length/trades.length*100) : 0;
+  const best  = trades.length ? Math.max(...trades.map(t=>t.pnl)) : 0;
+  const worst = trades.length ? Math.min(...trades.map(t=>t.pnl)) : 0;
+  const grossW = wins.reduce((s,t)=>s+t.pnl,0);
+  const grossL = Math.abs(loss.reduce((s,t)=>s+t.pnl,0));
+  const pf     = grossL ? (grossW/grossL) : 0;
+
+  const startBalance = settings.balance || 10000;
+  const equity = startBalance + total;
+  const equityPctChange = startBalance ? (total/startBalance*100) : 0;
+  document.getElementById('equity-val').textContent = '$'+equity.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  setEl('equity-pct', `${equityPctChange>=0?'▲':'▼'} ${Math.abs(equityPctChange).toFixed(2)}%`);
+  const equityChangeEl = document.getElementById('equity-pct');
+  if(equityChangeEl) equityChangeEl.className = 'stat-change '+(equityPctChange>=0?'up':'dn');
+
+  setEl('total-pnl', fmt(total), total>=0?'text-green':'text-red');
+  setEl('total-pct', `${total>=0?'▲':'▼'} ${wr}% Win`);
+  setEl('total-trades', trades.length);
+  setEl('win-rate', `Win: ${wr}%`);
+  setEl('best-trade', fmt(best));
+  setEl('worst-trade', fmt(worst));
+  setEl('wr-pct2', wr+'%');
+  setEl('wins-count', wins.length);
+  setEl('loss-count', loss.length);
+  setEl('lib-count-dash', library.length);
+  setEl('pf-val', pf.toFixed(2));
+  setEl('rr-ratio', `1:${pf>0?pf.toFixed(1):'0'}`);
+  document.getElementById('wr-bar').style.width = wr+'%';
+  document.getElementById('pf-bar').style.width = Math.min(pf/3*100,100)+'%';
+  document.getElementById('rr-bar').style.width = Math.min(pf/3*100,100)+'%';
+  document.getElementById('trade-badge').textContent = trades.length;
+  document.getElementById('lib-badge').textContent = library.length;
+
+  // Recent table
+  const tbody = document.getElementById('recent-tbody');
+  if(!trades.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted)">Hali bitim yo\'q</td></tr>';
+  } else {
+    tbody.innerHTML = trades.slice(0,5).map(t=>`
+      <tr>
+        <td class="mono">${t.symbol}</td>
+        <td><span class="badge ${t.dir==='BUY'?'buy':'sell'}">${t.dir==='BUY'?'▲':'▼'} ${t.dir}</span></td>
+        <td class="mono">${t.entry}</td>
+        <td class="mono">${t.exit}</td>
+        <td class="${t.pnl>=0?'profit':'loss'}">${fmt(t.pnl)}</td>
+        <td class="text-muted text-sm">${t.strategy}</td>
+        <td class="text-muted text-sm">${t.date}</td>
+      </tr>`).join('');
+  }
+  drawMainChart();
+}
+
+function setEl(id, val, cls='') {
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.textContent = val;
+  if(cls) { el.className = el.className.replace(/text-(green|red|gold|muted)/g,''); el.classList.add(cls); }
+}
+
+// ─── RENDER JOURNAL ───
+let journalFilter = 'all';
+function switchTab(f,el) {
+  journalFilter=f;
+  document.querySelectorAll('#page-journal .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderJournal();
+}
+const EMOTION_MAP = {
+  calm:{label:"Xotirjam",icon:"😌"}, confident:{label:"Ishonchli",icon:"💪"},
+  fomo:{label:"FOMO",icon:"⚡"}, fear:{label:"Qo'rquv",icon:"😟"},
+  greed:{label:"Ochko'zlik",icon:"🤑"}, revenge:{label:"Qasos",icon:"😤"}
+};
+function renderJournal() {
+  let data = trades;
+  if(journalFilter==='buy')  data = data.filter(t=>t.dir==='BUY');
+  if(journalFilter==='sell') data = data.filter(t=>t.dir==='SELL');
+  if(journalFilter==='win')  data = data.filter(t=>t.pnl>0);
+  if(journalFilter==='loss') data = data.filter(t=>t.pnl<0);
+  const searchEl = document.getElementById('journal-search');
+  const q = searchEl ? searchEl.value.trim().toUpperCase() : '';
+  if(q) data = data.filter(t=>t.symbol.includes(q));
+  const tbody = document.getElementById('journal-tbody');
+  if(!data.length) {
+    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:40px;color:var(--text-muted)">📭 Ma\'lumot yo\'q</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map((t,i)=>{
+    const em = EMOTION_MAP[t.emotion] || null;
+    const sessionLabels = {asia:'🌏 Asia',london:'🇬🇧 London',ny:'🇺🇸 NY',overlap:'🔁 Overlap'};
+    const tagsHtml = (t.tags||[]).slice(0,2).map(tag=>`<span class="lib-tag">${tag}</span>`).join('') || '<span class="text-muted">—</span>';
+    return `
+    <tr>
+      <td class="text-muted">${i+1}</td>
+      <td class="mono">${t.symbol}</td>
+      <td><span class="badge ${t.dir==='BUY'?'buy':'sell'}">${t.dir}</span></td>
+      <td class="mono">${t.entry}</td>
+      <td class="mono">${t.exit}</td>
+      <td class="mono">${t.lot}</td>
+      <td class="${t.pnl>=0?'profit':'loss'}">${fmt(t.pnl)}</td>
+      <td class="text-muted text-sm">${t.strategy}</td>
+      <td class="text-muted text-sm">${sessionLabels[t.session]||'—'}</td>
+      <td class="text-sm" style="display:flex;gap:4px;flex-wrap:wrap">${tagsHtml}</td>
+      <td class="text-sm">${em ? em.icon+' '+em.label : '<span class="text-muted">—</span>'}</td>
+      <td class="text-muted text-sm" style="max-width:120px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis" title="${t.note}">${t.note||'—'}</td>
+      <td class="text-muted text-sm">${t.date}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="openTradeView(${t.id})">👁️</button>
+        <button class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="deleteTrade(${t.id})">🗑️</button>
+      </td>
+    </tr>`;}).join('');
+}
+
+// ─── LIBRARY ───
+let libFilter = 'all';
+function filterLib(f,el) {
+  libFilter=f;
+  document.querySelectorAll('#page-library .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderLibrary();
+}
+function previewFile(input) {
+  if(!input.files[0]) return;
+  const file = input.files[0];
+  const name = file.name;
+  const mime = file.type;
+  const el = document.getElementById('lib-file-preview');
+  const isImg = mime.startsWith('image/');
+  const reader = new FileReader();
+  reader.onload = e => {
+    libFiles['pending'] = {data: e.target.result, name, type: isImg?'image':'file', mime};
+    if(isImg) {
+      el.innerHTML = `<img src="${e.target.result}" style="max-height:80px;border-radius:8px;margin-bottom:6px"><br><span style="font-size:12px;color:var(--green)">✅ ${name}</span>`;
+    } else {
+      el.innerHTML = `<div style="font-size:28px">📎</div><div style="font-size:12px;color:var(--green);margin-top:4px">✅ ${name}</div>`;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+async function saveLib() {
+  const title = document.getElementById('lib-title').value.trim();
+  if(!title) return alert('Sarlavha kiriting!');
+  const id = Date.now();
+  const pending = libFiles['pending'];
+  // Store meta WITHOUT the raw data in localStorage (to avoid 5MB limit)
+  const item = {
+    id,
+    title,
+    cat: document.getElementById('lib-cat').value,
+    desc: document.getElementById('lib-desc').value,
+    tags: document.getElementById('lib-tags').value.split(',').map(s=>s.trim()).filter(Boolean),
+    date: new Date().toLocaleDateString('uz-UZ'),
+    file: pending ? {name: pending.name, type: pending.type, mime: pending.mime} : null
+  };
+  // Save file data separately in IndexedDB
+  if(pending && pending.data) {
+    idbCache[id] = pending.data;
+    await saveFileIDB(id, pending.data);
+  }
+  library.unshift(item);
+  localStorage.setItem('tp-library', JSON.stringify(library));
+  libFiles['pending'] = null;
+  closeModal('libModal');
+  ['lib-title','lib-desc','lib-tags'].forEach(id2=>document.getElementById(id2).value='');
+  document.getElementById('lib-file-preview').innerHTML = '🖼️';
+  document.getElementById('trade-badge').textContent = trades.length;
+  document.getElementById('lib-badge').textContent = library.length;
+  setEl('lib-count-dash', library.length);
+  renderLibrary();
+}
+function renderLibrary() {
+  const grid = document.getElementById('lib-grid');
+  let data = library;
+  if(libFilter!=='all') data = data.filter(i=>i.cat===libFilter);
+  if(!data.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-muted)">📚 Hali material qo\'shilmagan</div>';
+    return;
+  }
+  grid.innerHTML = data.map(i=>{
+    // Thumbnail: use stored imageData from idbCache if available
+    const imgSrc = idbCache[i.id] || (i.file && i.file.data) || '';
+    let thumb = `<div class="lib-thumb"><span style="z-index:1;font-size:36px">${i.cat}</span><div class="lib-type">${i.date}</div></div>`;
+    if(imgSrc) {
+      thumb = `<div class="lib-thumb"><img src="${imgSrc}" style="width:100%;height:100%;object-fit:cover;position:absolute"><div class="lib-type">${i.date}</div></div>`;
+    }
+    const hasFile = i.file && i.file.name;
+    return `<div class="lib-card" onclick="openLibItem(${i.id})" style="cursor:pointer">
+      ${thumb}
+      <div class="lib-body">
+        <div class="lib-title">${i.title}</div>
+        <div class="lib-meta" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${i.desc||'—'}</div>
+        ${hasFile?`<div class="text-sm mt-4" style="color:var(--green)">📎 ${i.file.name}</div>`:''}
+        <div class="lib-tags">${(i.tags||[]).map(t=>`<span class="lib-tag">${t}</span>`).join('')}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── INDEXEDDB for images/files ───
+let db; let idbCache = {};
+function openDB() {
+  return new Promise((res,rej)=>{
+    const req = indexedDB.open('traderpro-files',1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore('files',{keyPath:'id'});
+    req.onsuccess = e => { db=e.target.result; res(db); };
+    req.onerror = rej;
+  });
+}
+async function saveFileIDB(id, data) {
+  if(!db) await openDB();
+  return new Promise((res,rej)=>{
+    const tx = db.transaction('files','readwrite');
+    tx.objectStore('files').put({id, data});
+    tx.oncomplete = res; tx.onerror = rej;
+  });
+}
+async function getFileIDB(id) {
+  if(!db) await openDB();
+  return new Promise((res,rej)=>{
+    const tx = db.transaction('files','readonly');
+    const req = tx.objectStore('files').get(id);
+    req.onsuccess = e => res(e.target.result?.data || null);
+    req.onerror = rej;
+  });
+}
+async function deleteFileIDB(id) {
+  if(!db) await openDB();
+  return new Promise((res,rej)=>{
+    const tx = db.transaction('files','readwrite');
+    tx.objectStore('files').delete(id);
+    tx.oncomplete = res; tx.onerror = rej;
+  });
+}
+async function loadAllIDBCache() {
+  if(!db) await openDB();
+  return new Promise((res)=>{
+    const tx = db.transaction('files','readonly');
+    const req = tx.objectStore('files').getAll();
+    req.onsuccess = e => {
+      idbCache = {};
+      (e.target.result||[]).forEach(r=>idbCache[r.id]=r.data);
+      res();
+    };
+    req.onerror = ()=>res();
+  });
+}
+
+// ─── VIEW LIB ITEM ───
+let currentLibId = null;
+async function openLibItem(id) {
+  const item = library.find(i=>i.id===id);
+  if(!item) return;
+  currentLibId = id;
+  document.getElementById('vm-title').textContent = item.title;
+  document.getElementById('vm-cat').textContent = item.cat;
+  document.getElementById('vm-date').textContent = item.date;
+  document.getElementById('vm-desc').textContent = item.desc || '—';
+  document.getElementById('vm-tags').innerHTML = (item.tags||[]).map(t=>`<span class="lib-tag">${t}</span>`).join('');
+
+  // Image
+  const imgWrap = document.getElementById('vm-img-wrap');
+  const fileWrap = document.getElementById('vm-file-wrap');
+  imgWrap.style.display = 'none';
+  fileWrap.style.display = 'none';
+
+  if(item.file) {
+    // Try to get from IndexedDB first
+    let fileData = idbCache[id] || await getFileIDB(id);
+    if(!fileData && item.file.data) fileData = item.file.data; // fallback
+
+    if(item.file.type === 'image' && fileData) {
+      document.getElementById('vm-img').src = fileData;
+      imgWrap.style.display = 'block';
+    } else if(item.file.name) {
+      document.getElementById('vm-fname').textContent = item.file.name;
+      fileWrap.style.display = 'block';
+      // Store data ref for download
+      window._currentFileData = fileData;
+      window._currentFileName = item.file.name;
+      window._currentFileMime = item.file.mime || 'application/octet-stream';
+    }
+  }
+  openModal('viewModal');
+}
+
+function downloadFile() {
+  if(!window._currentFileData) return alert('Fayl ma\'lumoti topilmadi');
+  const a = document.createElement('a');
+  a.href = window._currentFileData;
+  a.download = window._currentFileName || 'file';
+  a.click();
+}
+
+function deleteCurrentLib() {
+  if(!currentLibId) return;
+  if(!confirm('Bu materialni o\'chirasizmi?')) return;
+  library = library.filter(i=>i.id!==currentLibId);
+  localStorage.setItem('tp-library', JSON.stringify(library));
+  deleteFileIDB(currentLibId);
+  delete idbCache[currentLibId];
+  document.getElementById('lib-badge').textContent = library.length;
+  setEl('lib-count-dash', library.length);
+  closeModal('viewModal');
+  renderLibrary();
+}
+
+// ─── STRATEGIES ───
+let stratFilter = 'all';
+let currentStratId = null;
+let editStratId = null;
+
+function filterStrat(f, el) {
+  stratFilter = f;
+  document.querySelectorAll('#page-strategies .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderStrategies();
+}
+
+function renderStrategies() {
+  const grid = document.getElementById('strat-grid');
+  let data = strategies;
+  if(stratFilter !== 'all') data = data.filter(s => s.type === stratFilter);
+  if(!data.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-muted)">⚡ Strategiya qo'shilmagan.<br><br><button class="btn btn-primary" onclick="openModal('stratModal')">➕ Birinchi Strategiyani Qo'shish</button></div>`;
+    return;
+  }
+  grid.innerHTML = data.map(s => {
+    const stars = [1,2,3,4,5].map(i=>`<span style="color:${i<=Math.round(s.win/20)?'var(--gold)':'rgba(255,255,255,0.15)'}">${i<=Math.round(s.win/20)?'★':'☆'}</span>`).join('');
+    const relTrades = trades.filter(t=>t.strategy===s.name);
+    const relWins = relTrades.filter(t=>t.pnl>0).length;
+    const realWR = relTrades.length ? Math.round(relWins/relTrades.length*100) : null;
+    const typeColors = {trend:'var(--green)',scalping:'var(--red)',swing:'var(--blue)',reversal:'var(--gold)',breakout:'#A78BFA'};
+    const typeColor = typeColors[s.type] || 'var(--text-muted)';
+    return `<div class="strategy-card" onclick="openStratView(${s.id})" style="cursor:pointer">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div>
+          <span style="font-size:10px;font-weight:700;color:${typeColor};text-transform:uppercase;letter-spacing:.8px;background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:20px">${s.type||'strategy'}</span>
+          <div class="strategy-name" style="margin-top:8px">${s.name}</div>
+          <div class="text-muted text-sm" style="margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${s.desc||'—'}</div>
+        </div>
+        <div style="font-size:14px;letter-spacing:1px">${stars}</div>
+      </div>
+      <div class="strategy-stats">
+        <div class="st-stat">
+          <div class="st-val text-green">${realWR !== null ? realWR+'%' : s.win+'%'}</div>
+          <div class="st-lbl">${realWR !== null ? 'Real WR' : 'WR (taxm.)'}</div>
+        </div>
+        <div class="st-stat">
+          <div class="st-val text-gold">${s.rr||'1:2'}</div>
+          <div class="st-lbl">R/R</div>
+        </div>
+        <div class="st-stat">
+          <div class="st-val">${relTrades.length || s.trades || 0}</div>
+          <div class="st-lbl">Bitimlar</div>
+        </div>
+      </div>
+      <div class="lib-tags" style="margin-top:10px">${(s.tags||[]).map(t=>`<span class="lib-tag">${t}</span>`).join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+function saveStrategy() {
+  const name = document.getElementById('st-name').value.trim();
+  if(!name) return alert('Nom kiriting!');
+  const strat = {
+    id: editStratId || Date.now(),
+    name,
+    type: document.getElementById('st-type').value,
+    rr: document.getElementById('st-rr').value || '1:2',
+    win: parseInt(document.getElementById('st-win').value) || 50,
+    desc: document.getElementById('st-desc').value,
+    tags: document.getElementById('st-tags').value.split(',').map(s=>s.trim()).filter(Boolean),
+    trades: 0
+  };
+  if(editStratId) {
+    const idx = strategies.findIndex(s=>s.id===editStratId);
+    if(idx>-1) strategies[idx] = {...strategies[idx], ...strat};
+    editStratId = null;
+  } else {
+    strategies.push(strat);
+  }
+  localStorage.setItem('tp-strategies', JSON.stringify(strategies));
+  closeModal('stratModal');
+  ['st-name','st-rr','st-win','st-desc','st-tags'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('strat-modal-title').textContent = '⚡ Yangi Strategiya';
+  updateStratSelect();
+  renderStrategies();
+}
+
+function openStratView(id) {
+  const s = strategies.find(s=>s.id===id);
+  if(!s) return;
+  currentStratId = id;
+  document.getElementById('sv-name').textContent = s.name;
+  document.getElementById('sv-win').textContent = s.win+'%';
+  document.getElementById('sv-rr').textContent = s.rr||'1:2';
+  document.getElementById('sv-desc').textContent = s.desc||'Tavsif yo\'q';
+  document.getElementById('sv-tags').innerHTML = (s.tags||[]).map(t=>`<span class="lib-tag">${t}</span>`).join('');
+  const relTrades = trades.filter(t=>t.strategy===s.name);
+  document.getElementById('sv-trades').textContent = relTrades.length;
+  if(relTrades.length) {
+    const pnl = relTrades.reduce((sum,t)=>sum+t.pnl,0);
+    const wr = Math.round(relTrades.filter(t=>t.pnl>0).length/relTrades.length*100);
+    document.getElementById('sv-trades-list').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+        <div style="text-align:center"><div class="${pnl>=0?'text-green':'text-red'} fw-700">${fmt(pnl)}</div><div>Jami P&L</div></div>
+        <div style="text-align:center"><div class="text-green fw-700">${wr}%</div><div>Real Win Rate</div></div>
+        <div style="text-align:center"><div class="fw-700">${relTrades.length}</div><div>Bitim</div></div>
+      </div>
+      ${relTrades.slice(0,4).map(t=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span>${t.symbol} <span class="badge ${t.dir==='BUY'?'buy':'sell'}" style="font-size:10px">${t.dir}</span></span><span class="${t.pnl>=0?'profit':'loss'}">${fmt(t.pnl)}</span></div>`).join('')}
+      ${relTrades.length>4?`<div class="text-muted text-sm" style="margin-top:6px">+${relTrades.length-4} ta boshqa bitim</div>`:''}`;
+  } else {
+    document.getElementById('sv-trades-list').innerHTML = '<span class="text-muted">Bu strategiya bilan hali bitim yo\'q</span>';
+  }
+  openModal('stratViewModal');
+}
+
+function deleteCurrentStrat() {
+  if(!confirm('Bu strategiyani o\'chirasizmi?')) return;
+  strategies = strategies.filter(s=>s.id!==currentStratId);
+  localStorage.setItem('tp-strategies', JSON.stringify(strategies));
+  closeModal('stratViewModal');
+  renderStrategies();
+}
+
+function editCurrentStrat() {
+  const s = strategies.find(s=>s.id===currentStratId);
+  if(!s) return;
+  closeModal('stratViewModal');
+  editStratId = s.id;
+  document.getElementById('strat-modal-title').textContent = '✏️ Strategiyani Tahrirlash';
+  document.getElementById('st-name').value = s.name;
+  document.getElementById('st-type').value = s.type || 'trend';
+  document.getElementById('st-rr').value = s.rr || '';
+  document.getElementById('st-win').value = s.win || '';
+  document.getElementById('st-desc').value = s.desc || '';
+  document.getElementById('st-tags').value = (s.tags||[]).join(', ');
+  openModal('stratModal');
+}
+
+// ─── GOALS / MAQSADLAR ───
+function initGoalsInputs() {
+  document.getElementById('g-daily').value = goals.daily || '';
+  document.getElementById('g-weekly').value = goals.weekly || '';
+  document.getElementById('g-monthly').value = goals.monthly || '';
+  document.getElementById('g-maxloss').value = goals.maxloss || '';
+}
+function saveGoals() {
+  goals = {
+    daily: parseFloat(document.getElementById('g-daily').value)||0,
+    weekly: parseFloat(document.getElementById('g-weekly').value)||0,
+    monthly: parseFloat(document.getElementById('g-monthly').value)||0,
+    maxloss: parseFloat(document.getElementById('g-maxloss').value)||0
+  };
+  localStorage.setItem('tp-goals', JSON.stringify(goals));
+  renderGoals();
+}
+function parseTradeDate(t) {
+  const p = (t.date||'').split('.');
+  return p.length===3 ? new Date(p[2], p[1]-1, p[0]) : null;
+}
+function renderGoals() {
+  const now = new Date();
+  const todayStr = now.toLocaleDateString('uz-UZ');
+  const startOfWeek = new Date(now); startOfWeek.setDate(now.getDate()-((now.getDay()+6)%7)); startOfWeek.setHours(0,0,0,0);
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  let dailyPnl=0, weeklyPnl=0, monthlyPnl=0, todayCount=0;
+  trades.forEach(t=>{
+    const d = parseTradeDate(t);
+    if(!d) return;
+    if(t.date===todayStr) { dailyPnl+=t.pnl; todayCount++; }
+    if(d>=startOfWeek) weeklyPnl+=t.pnl;
+    if(d>=startOfMonth) monthlyPnl+=t.pnl;
+  });
+
+  setGoalBar('daily', dailyPnl, goals.daily);
+  setGoalBar('weekly', weeklyPnl, goals.weekly);
+  setGoalBar('monthly', monthlyPnl, goals.monthly);
+  setEl('g-today-count', todayCount);
+
+  // Daily loss limit
+  const todayLoss = Math.abs(Math.min(dailyPnl,0));
+  const maxloss = goals.maxloss||0;
+  const lossPct = maxloss ? Math.min(todayLoss/maxloss*100,100) : 0;
+  setEl('g-loss-cur', fmt(-todayLoss));
+  const lossBar = document.getElementById('g-loss-bar');
+  if(lossBar) lossBar.style.width = lossPct+'%';
+  const statusBox = document.getElementById('g-loss-status');
+  const msgEl = document.getElementById('g-loss-msg');
+  if(maxloss && todayLoss>=maxloss) {
+    statusBox.style.background='rgba(255,71,87,0.08)'; statusBox.style.borderColor='rgba(255,71,87,0.3)';
+    msgEl.style.color='var(--red)'; msgEl.textContent="⛔ Kunlik zarar limitiga yetdingiz — bugun savdoni to'xtatish tavsiya etiladi";
+  } else if(maxloss && todayLoss>=maxloss*0.7) {
+    statusBox.style.background='rgba(201,168,76,0.08)'; statusBox.style.borderColor='rgba(201,168,76,0.3)';
+    msgEl.style.color='var(--gold)'; msgEl.textContent="⚠️ Limitga yaqinlashyapsiz — ehtiyot bo'ling";
+  } else {
+    statusBox.style.background='rgba(0,212,170,0.06)'; statusBox.style.borderColor='rgba(0,212,170,0.2)';
+    msgEl.style.color='var(--green)'; msgEl.textContent="✅ Limit ichida — savdoni davom ettirsa bo'ladi";
+  }
+
+  // Win streak (consecutive days with positive net pnl)
+  const dayMap = {};
+  trades.forEach(t=>{ const d=parseTradeDate(t); if(!d) return; const key=d.toDateString(); dayMap[key]=(dayMap[key]||0)+t.pnl; });
+  const sortedDays = Object.keys(dayMap).map(k=>({key:k,date:new Date(k),pnl:dayMap[k]})).sort((a,b)=>a.date-b.date);
+  let cur=0, best=0;
+  sortedDays.forEach(d=>{ if(d.pnl>0){ cur++; if(cur>best)best=cur; } else { cur=0; } });
+  // current streak must end at the most recent trading day being positive
+  let liveCur=0;
+  for(let i=sortedDays.length-1;i>=0;i--){ if(sortedDays[i].pnl>0) liveCur++; else break; }
+  setEl('g-win-streak', liveCur+' kun');
+  setEl('g-best-streak', best+' kun');
+}
+function setGoalBar(prefix, current, target) {
+  const pct = target ? Math.max(Math.min(current/target*100,100),0) : 0;
+  setEl('g-'+prefix+'-cur', fmt(current));
+  setEl('g-'+prefix+'-pct', Math.round(pct)+'%');
+  const bar = document.getElementById('g-'+prefix+'-bar');
+  if(bar) bar.style.width = pct+'%';
+}
+
+// ─── CSV EXPORT / IMPORT ───
+function exportTradesCSV() {
+  if(!trades.length) return alert("Bitimlar yo'q — eksport qilish uchun avval bitim qo'shing");
+  const headers = ['symbol','dir','entry','exit','lot','pnl','strategy','emotion','note','date'];
+  const rows = trades.map(t => headers.map(h => {
+    let v = t[h]==null ? '' : String(t[h]).replace(/"/g,'""');
+    return `"${v}"`;
+  }).join(','));
+  const csv = headers.join(',') + '\n' + rows.join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `traderpro-bitimlar-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('✅ CSV eksport qilindi!', 'success');
+}
+function importTradesCSV(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const lines = e.target.result.split(/\r?\n/).filter(l=>l.trim().length);
+      const headers = parseCSVLine(lines[0]);
+      let added = 0;
+      for(let i=1;i<lines.length;i++) {
+        const cols = parseCSVLine(lines[i]);
+        if(cols.length < headers.length) continue;
+        const obj = {};
+        headers.forEach((h,idx)=>obj[h.trim()]=cols[idx]);
+        trades.unshift({
+          id: Date.now()+i,
+          symbol: (obj.symbol||'').toUpperCase(),
+          dir: obj.dir==='SELL'?'SELL':'BUY',
+          entry: parseFloat(obj.entry)||0,
+          exit: parseFloat(obj.exit)||0,
+          lot: parseFloat(obj.lot)||0,
+          pnl: parseFloat(obj.pnl)||0,
+          strategy: obj.strategy||'Boshqa',
+          emotion: obj.emotion||'calm',
+          note: obj.note||'',
+          date: obj.date || new Date().toLocaleDateString('uz-UZ')
+        });
+        added++;
+      }
+      localStorage.setItem('tp-trades', JSON.stringify(trades));
+      renderDashboard(); renderJournal(); renderAnalytics(); renderGoals();
+      showToast(`✅ ${added} ta bitim import qilindi!`, 'success');
+    } catch(err) {
+      showToast("❌ Faylni o'qishda xatolik. CSV formatini tekshiring.", 'error');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+function parseCSVLine(line) {
+  const result = []; let cur=''; let inQuotes=false;
+  for(let i=0;i<line.length;i++) {
+    const c = line[i];
+    if(c==='"') { if(inQuotes && line[i+1]==='"'){cur+='"';i++;} else inQuotes=!inQuotes; }
+    else if(c===',' && !inQuotes) { result.push(cur); cur=''; }
+    else cur+=c;
+  }
+  result.push(cur);
+  return result;
+}
+
+// ─── ANALYTICS ───
+let chartRange = 'all';
+function setChartRange(r, el) {
+  chartRange = r;
+  document.querySelectorAll('#page-analytics .topbar-btn').forEach(b=>{
+    b.style.background='rgba(255,255,255,0.06)'; b.style.color='var(--text-dim)'; b.style.borderColor='var(--border)';
+  });
+  el.style.background='rgba(0,212,170,0.15)'; el.style.color='var(--green)'; el.style.borderColor='rgba(0,212,170,0.3)';
+  drawAnalyticsChart();
+}
+
+function renderAnalytics() {
+  const total = trades.reduce((s,t)=>s+t.pnl,0);
+  const wins  = trades.filter(t=>t.pnl>0);
+  const loss  = trades.filter(t=>t.pnl<0);
+  const wr    = trades.length ? Math.round(wins.length/trades.length*100) : 0;
+  const avgW  = wins.length  ? wins.reduce((s,t)=>s+t.pnl,0)/wins.length : 0;
+  const avgL  = loss.length  ? loss.reduce((s,t)=>s+t.pnl,0)/loss.length : 0;
+  const grossW = wins.reduce((s,t)=>s+t.pnl,0);
+  const grossL = Math.abs(loss.reduce((s,t)=>s+t.pnl,0));
+  const pf = grossL ? grossW/grossL : 0;
+
+  // Drawdown
+  let peak=0, maxDD=0, running=0;
+  [...trades].reverse().forEach(t=>{running+=t.pnl; if(running>peak)peak=running; const dd=peak-running; if(dd>maxDD)maxDD=dd;});
+
+  // Simple Sharpe approx
+  const returns = trades.map(t=>t.pnl);
+  const meanR = returns.length ? returns.reduce((a,b)=>a+b,0)/returns.length : 0;
+  const stdR = returns.length>1 ? Math.sqrt(returns.reduce((s,v)=>s+(v-meanR)**2,0)/returns.length) : 1;
+  const sharpe = stdR ? (meanR/stdR).toFixed(2) : '0.00';
+
+  const pnlEl = document.getElementById('an-pnl');
+  if(pnlEl) { pnlEl.textContent = fmt(total); pnlEl.className = 'stat-value '+(total>=0?'text-green':'text-red'); }
+  setEl('an-wr', wr+'%');
+  setEl('an-avgw', fmt(avgW));
+  setEl('an-avgl', fmt(avgL));
+  setEl('an-pf', pf.toFixed(2));
+  setEl('an-sharpe', sharpe);
+  setEl('an-dd', fmt(-maxDD));
+  setEl('an-total', trades.length);
+  setEl('an-wins', wins.length);
+  setEl('an-losses', loss.length);
+  const pfPct = Math.min(pf/4*100,100);
+  const shPct = Math.min(Math.max(parseFloat(sharpe)/3*100,0),100);
+  const ddPct = total ? Math.min(maxDD/Math.abs(total)*100,100) : 0;
+  const pfBar = document.getElementById('an-pf-bar');
+  const shBar = document.getElementById('an-sharpe-bar');
+  const ddBar = document.getElementById('an-dd-bar');
+  if(pfBar) pfBar.style.width = pfPct+'%';
+  if(shBar) shBar.style.width = shPct+'%';
+  if(ddBar) ddBar.style.width = ddPct+'%';
+
+  // Top strategies
+  const stratMap = {};
+  trades.forEach(t=>{
+    if(!stratMap[t.strategy]) stratMap[t.strategy]={wins:0,total:0,pnl:0};
+    stratMap[t.strategy].total++;
+    if(t.pnl>0) stratMap[t.strategy].wins++;
+    stratMap[t.strategy].pnl+=t.pnl;
+  });
+  const stratEl = document.getElementById('top-strats');
+  const keys = Object.keys(stratMap).sort((a,b)=>stratMap[b].pnl-stratMap[a].pnl);
+  if(stratEl) stratEl.innerHTML = keys.length ? keys.slice(0,6).map(k=>{
+    const wr2 = Math.round(stratMap[k].wins/stratMap[k].total*100);
+    const pnl2 = stratMap[k].pnl;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${k}</div>
+        <div class="text-muted text-sm">${stratMap[k].total} bitim · ${wr2}% win</div>
+      </div>
+      <span class="${pnl2>=0?'profit':'loss'}">${fmt(pnl2)}</span>
+    </div>`;
+  }).join('') : '<div class="text-muted text-sm">Bitim qo\'shilgandan keyin ko\'rinadi</div>';
+
+  // Daily analysis
+  const dayMap = {};
+  trades.forEach(t=>{ if(!dayMap[t.date]) dayMap[t.date]={pnl:0,count:0}; dayMap[t.date].pnl+=t.pnl; dayMap[t.date].count++; });
+  const dailyEl = document.getElementById('daily-analysis');
+  const days = Object.keys(dayMap).sort().reverse();
+  if(dailyEl) dailyEl.innerHTML = days.length ? days.slice(0,6).map(d=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:13px;font-weight:600">${d}</div>
+        <div class="text-muted text-sm">${dayMap[d].count} bitim</div>
+      </div>
+      <span class="${dayMap[d].pnl>=0?'profit':'loss'}">${fmt(dayMap[d].pnl)}</span>
+    </div>`).join('') : '<div class="text-muted text-sm">Ma\'lumot yo\'q</div>';
+
+  // Session stats
+  const sessionLabels = {asia:'🌏 Asia',london:'🇬🇧 London',ny:'🇺🇸 New York',overlap:'🔁 London/NY Overlap'};
+  const sessMap = {};
+  trades.forEach(t=>{
+    const s = t.session || 'asia';
+    if(!sessMap[s]) sessMap[s] = {wins:0,total:0,pnl:0};
+    sessMap[s].total++;
+    if(t.pnl>0) sessMap[s].wins++;
+    sessMap[s].pnl += t.pnl;
+  });
+  const sessEl = document.getElementById('session-stats');
+  const sessKeys = Object.keys(sessMap).sort((a,b)=>sessMap[b].pnl-sessMap[a].pnl);
+  if(sessEl) sessEl.innerHTML = sessKeys.length ? sessKeys.map(k=>{
+    const swr = Math.round(sessMap[k].wins/sessMap[k].total*100);
+    return `<div>
+      <div class="flex-between text-sm" style="margin-bottom:5px">
+        <span>${sessionLabels[k]||k}</span>
+        <span class="fw-700 ${sessMap[k].pnl>=0?'text-green':'text-red'}">${fmt(sessMap[k].pnl)} · ${swr}% win</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${swr}%;background:${sessMap[k].pnl>=0?'var(--green)':'var(--red)'}"></div></div>
+    </div>`;
+  }).join('') : '<div class="text-muted text-sm">Ma\'lumot yo\'q</div>';
+
+  // Best / worst 5 trades
+  const sortedByPnl = [...trades].sort((a,b)=>b.pnl-a.pnl);
+  const bestList = sortedByPnl.slice(0,5);
+  const worstList = sortedByPnl.slice(-5).reverse();
+  const renderMiniTrade = t => `<div class="flex-between text-sm" style="padding:5px 8px;background:rgba(255,255,255,0.03);border-radius:6px">
+    <span class="mono">${t.symbol}</span><span class="${t.pnl>=0?'profit':'loss'}">${fmt(t.pnl)}</span>
+  </div>`;
+  const bestEl = document.getElementById('best-trades-list');
+  const worstEl = document.getElementById('worst-trades-list');
+  if(bestEl) bestEl.innerHTML = bestList.length ? bestList.map(renderMiniTrade).join('') : '<div class="text-muted text-sm">—</div>';
+  if(worstEl) worstEl.innerHTML = worstList.length ? worstList.map(renderMiniTrade).join('') : '<div class="text-muted text-sm">—</div>';
+
+  // Symbol stats
+  const symMap = {};
+  trades.forEach(t=>{ if(!symMap[t.symbol]) symMap[t.symbol]={wins:0,total:0,pnl:0}; symMap[t.symbol].total++; if(t.pnl>0)symMap[t.symbol].wins++; symMap[t.symbol].pnl+=t.pnl; });
+  const symEl = document.getElementById('symbol-stats');
+  const syms = Object.keys(symMap).sort((a,b)=>symMap[b].pnl-symMap[a].pnl);
+  if(symEl) symEl.innerHTML = syms.length ? syms.slice(0,6).map(s=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <span style="font-family:var(--mono);font-weight:600">${s}</span>
+        <span class="text-muted text-sm" style="margin-left:8px">${symMap[s].total} ta</span>
+      </div>
+      <span class="${symMap[s].pnl>=0?'profit':'loss'}">${fmt(symMap[s].pnl)}</span>
+    </div>`).join('') : '<div class="text-muted text-sm">Ma\'lumot yo\'q</div>';
+
+  // Emotion / psychology stats
+  const emoMap = {};
+  trades.forEach(t=>{
+    if(!t.emotion) return;
+    if(!emoMap[t.emotion]) emoMap[t.emotion]={wins:0,total:0,pnl:0};
+    emoMap[t.emotion].total++;
+    if(t.pnl>0) emoMap[t.emotion].wins++;
+    emoMap[t.emotion].pnl+=t.pnl;
+  });
+  const emoEl = document.getElementById('emotion-stats');
+  const emoKeys = Object.keys(emoMap).sort((a,b)=>emoMap[b].pnl-emoMap[a].pnl);
+  if(emoEl) emoEl.innerHTML = emoKeys.length ? emoKeys.map(k=>{
+    const info = EMOTION_MAP[k] || {label:k,icon:'•'};
+    const wr3 = Math.round(emoMap[k].wins/emoMap[k].total*100);
+    return `<div class="st-stat" style="text-align:left;padding:12px">
+      <div class="flex-between"><span style="font-size:13px;font-weight:600">${info.icon} ${info.label}</span><span class="${emoMap[k].pnl>=0?'profit':'loss'}" style="font-size:13px">${fmt(emoMap[k].pnl)}</span></div>
+      <div class="text-muted text-sm mt-4">${emoMap[k].total} bitim · ${wr3}% win</div>
+    </div>`;
+  }).join('') : '<div class="text-muted text-sm">Bitimlarga hissiyot belgilangach ko\'rinadi</div>';
+
+  drawAnalyticsChart();
+  drawWeekdayChart();
+}
+
+// ─── CHARTS ───
+function drawMainChart() {
+  const canvas = document.getElementById('mainChart');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth, H = 200;
+  canvas.width = W*2; canvas.height = H*2; canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  ctx.scale(2,2);
+  ctx.clearRect(0,0,W,H);
+
+  let pts = [0];
+  [...trades].reverse().forEach(t=>pts.push(pts[pts.length-1]+t.pnl));
+  if(pts.length<2) { pts=[0,0,0,0,0]; }
+
+  const maxV = Math.max(...pts,1), minV = Math.min(...pts,-1);
+  const range = maxV-minV||1;
+  const px = (i)=>i/(pts.length-1)*W;
+  const py = (v)=>H-20-(v-minV)/range*(H-35);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth=1;
+  for(let i=0;i<5;i++) {
+    const y = 10+i*(H-30)/4;
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+  }
+
+  // Area
+  const last = pts[pts.length-1];
+  const grad = ctx.createLinearGradient(0,0,0,H);
+  if(last>=0) { grad.addColorStop(0,'rgba(0,212,170,0.25)'); grad.addColorStop(1,'rgba(0,212,170,0)'); }
+  else        { grad.addColorStop(0,'rgba(255,71,87,0.2)');  grad.addColorStop(1,'rgba(255,71,87,0)'); }
+  ctx.beginPath();
+  ctx.moveTo(px(0),py(pts[0]));
+  pts.forEach((v,i)=>{ if(i>0) ctx.lineTo(px(i),py(v)); });
+  ctx.lineTo(px(pts.length-1),H); ctx.lineTo(px(0),H); ctx.closePath();
+  ctx.fillStyle=grad; ctx.fill();
+
+  // Line
+  ctx.beginPath(); ctx.moveTo(px(0),py(pts[0]));
+  pts.forEach((v,i)=>{ if(i>0) ctx.lineTo(px(i),py(v)); });
+  ctx.strokeStyle = last>=0?'#00D4AA':'#FF4757';
+  ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.stroke();
+}
+
+function drawAnalyticsChart() {
+  const canvas = document.getElementById('analyticsChart');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 600, H = 220;
+  canvas.width = W*2; canvas.height = H*2; canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  ctx.scale(2,2);
+  ctx.clearRect(0,0,W,H);
+
+  // Filter by range
+  let filtered = [...trades].reverse();
+  if(chartRange === 'week') {
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-7);
+    filtered = filtered.filter(t => { const p=t.date.split('.'); return p.length===3 && new Date(p[2],p[1]-1,p[0])>=cutoff; });
+  } else if(chartRange === 'month') {
+    const cutoff = new Date(); cutoff.setMonth(cutoff.getMonth()-1);
+    filtered = filtered.filter(t => { const p=t.date.split('.'); return p.length===3 && new Date(p[2],p[1]-1,p[0])>=cutoff; });
+  }
+
+  let cum = [0];
+  filtered.forEach(t=>cum.push(cum[cum.length-1]+t.pnl));
+  if(cum.length<2) {
+    ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.fillRect(0,H/2-1,W,2);
+    ctx.fillStyle='var(--text-muted)'; ctx.font='13px Inter'; ctx.textAlign='center';
+    ctx.fillText(filtered.length===0?'Bu davrda bitim yo\'q':'—', W/2, H/2+5);
+    return;
+  }
+
+  const maxV = Math.max(...cum,1), minV = Math.min(...cum,-1), range = maxV-minV||1;
+  const px = i=>i/(cum.length-1)*(W-20)+10, py = v=>H-25-(v-minV)/range*(H-40);
+
+  // Grid lines
+  ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=1;
+  for(let i=0;i<6;i++){const y=10+i*(H-30)/5;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  // Zero line
+  if(minV<0 && maxV>0) {
+    const zy = py(0);
+    ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(0,zy); ctx.lineTo(W,zy); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  const last = cum[cum.length-1];
+  const grad = ctx.createLinearGradient(0,0,0,H);
+  if(last>=0){grad.addColorStop(0,'rgba(0,212,170,0.25)');grad.addColorStop(1,'rgba(0,212,170,0)');}
+  else{grad.addColorStop(0,'rgba(255,71,87,0.2)');grad.addColorStop(1,'rgba(255,71,87,0)');}
+
+  ctx.beginPath(); ctx.moveTo(px(0),py(cum[0]));
+  cum.forEach((v,i)=>{if(i>0)ctx.lineTo(px(i),py(v));});
+  ctx.lineTo(px(cum.length-1),H);ctx.lineTo(px(0),H);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();
+
+  ctx.beginPath();ctx.moveTo(px(0),py(cum[0]));
+  cum.forEach((v,i)=>{if(i>0)ctx.lineTo(px(i),py(v));});
+  ctx.strokeStyle=last>=0?'#00D4AA':'#FF4757';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
+
+  // Last point dot
+  const lx=px(cum.length-1), ly=py(last);
+  ctx.beginPath();ctx.arc(lx,ly,4,0,Math.PI*2);
+  ctx.fillStyle=last>=0?'#00D4AA':'#FF4757';ctx.fill();
+}
+
+function drawWeekdayChart() {
+  const canvas = document.getElementById('weekdayChart');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth, H = 160;
+  canvas.width = W*2; canvas.height = H*2; canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  ctx.scale(2,2);
+  ctx.clearRect(0,0,W,H);
+  const days = ['Du','Se','Ch','Pa','Ju','Sha','Ya'];
+  const dayPnl = [0,0,0,0,0,0,0];
+  trades.forEach(t => {
+    const parts = t.date.split('.');
+    if(parts.length===3) {
+      const d = new Date(parts[2], parts[1]-1, parts[0]);
+      const dow = (d.getDay()+6)%7;
+      dayPnl[dow] += t.pnl;
+    }
+  });
+  const maxAbs = Math.max(...dayPnl.map(Math.abs), 1);
+  const bW = (W - 20) / 7;
+  const midY = H * 0.6;
+  const scale = (midY - 10) / maxAbs;
+  // Zero line
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, midY); ctx.lineTo(W, midY); ctx.stroke();
+  days.forEach((label, i) => {
+    const x = 10 + i * bW + bW * 0.1;
+    const bw = bW * 0.8;
+    const v = dayPnl[i];
+    const barH = Math.abs(v) * scale;
+    const y = v >= 0 ? midY - barH : midY;
+    const color = v >= 0 ? 'rgba(0,212,170,0.7)' : 'rgba(255,71,87,0.7)';
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x, v>=0?y:midY, bw, barH, 3) : ctx.rect(x, v>=0?y:midY, bw, barH);
+    ctx.fill();
+    ctx.fillStyle = v >= 0 ? '#00D4AA' : '#FF4757';
+    ctx.font = `${10*2}px Inter`; ctx.textAlign = 'center'; ctx.scale(0.5,0.5);
+    ctx.fillText(label, (x + bw/2)*2, (H-4)*2);
+    ctx.scale(2,1);
+  });
+}
+
+// ─── CALCULATORS ───
+function switchCalc(id, el) {
+  ['pos','rr','pip','margin','kelly','ev','ruin'].forEach(c=>{
+    const el2 = document.getElementById('calc-'+c);
+    if(el2) el2.style.display = c===id ? 'block' : 'none';
+  });
+  document.querySelectorAll('#page-calc .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ─── TOAST NOTIFICATIONS ───
+function showToast(msg, type='info') {
+  const toast = document.createElement('div');
+  toast.className = 'toast '+type;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+
+// ─── DARK MODE ───
+function toggleDarkMode() {
+  document.body.classList.toggle('light-mode');
+  localStorage.setItem('tp-mode', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+  updateModeIcon();
+}
+function updateModeIcon() {
+  const btn = document.querySelector('.mode-toggle');
+  if(btn) btn.textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+}
+function initMode() {
+  const mode = localStorage.getItem('tp-mode')||'dark';
+  if(mode==='light') document.body.classList.add('light-mode');
+  updateModeIcon();
+}
+
+function calcPos() {
+  const bal = parseFloat(document.getElementById('c-balance').value)||0;
+  const risk = parseFloat(document.getElementById('c-risk').value)||0;
+  const sl = parseFloat(document.getElementById('c-sl-pip').value)||1;
+  const pipV = parseFloat(document.getElementById('c-pip-val').value)||10;
+  const riskAmt = bal * risk / 100;
+  const lot = riskAmt / (sl * pipV);
+  document.getElementById('r-risk').textContent = fmt(riskAmt);
+  document.getElementById('r-lot').textContent = lot.toFixed(2);
+}
+
+function calcRR() {
+  const entry = parseFloat(document.getElementById('rr-entry').value)||0;
+  const sl    = parseFloat(document.getElementById('rr-sl').value)||0;
+  const tp    = parseFloat(document.getElementById('rr-tp').value)||0;
+  const risk  = Math.abs(entry-sl)*10000;
+  const rew   = Math.abs(tp-entry)*10000;
+  const rr    = risk ? rew/risk : 0;
+  document.getElementById('rr-risk-val').textContent = risk.toFixed(1)+' pip';
+  document.getElementById('rr-rew-val').textContent  = rew.toFixed(1)+' pip';
+  document.getElementById('rr-ratio-val').textContent = '1 : '+rr.toFixed(2);
+}
+
+function calcPip() {
+  const lot   = parseFloat(document.getElementById('pip-lot').value)||0;
+  const pips  = parseFloat(document.getElementById('pip-count').value)||0;
+  document.getElementById('pip-result').textContent = fmt(lot*pips*10);
+}
+
+function calcMargin() {
+  const lot   = parseFloat(document.getElementById('mg-lot').value)||0;
+  const lev   = parseFloat(document.getElementById('mg-lev').value)||1;
+  const price = parseFloat(document.getElementById('mg-price').value)||1;
+  document.getElementById('mg-result').textContent = fmt(lot*100000*price/lev);
+}
+
+function calcKelly() {
+  const wr = parseFloat(document.getElementById('kelly-wr').value)||0;
+  const avgW = parseFloat(document.getElementById('kelly-avgw').value)||0;
+  const avgL = parseFloat(document.getElementById('kelly-avgl').value)||0;
+  if(avgL===0 || wr<=0 || wr>100) { document.getElementById('kelly-result').textContent = '0%'; return; }
+  const p = wr/100; const q = 1-p; const b = avgW/avgL;
+  const f = (b*p - q) / b;
+  const fOptimal = Math.max(0, Math.min(f, 0.25)); // cap at 25% max
+  document.getElementById('kelly-result').textContent = (fOptimal*100).toFixed(2)+'%';
+}
+
+function calcEV() {
+  const wr = parseFloat(document.getElementById('ev-wr').value)||0;
+  const win = parseFloat(document.getElementById('ev-win').value)||0;
+  const loss = parseFloat(document.getElementById('ev-loss').value)||0;
+  const count = parseFloat(document.getElementById('ev-count').value)||1;
+  const p = wr/100; const q = 1-p;
+  const ev = p*win - q*loss;
+  const monthlyEv = ev * count;
+  document.getElementById('ev-single').textContent = fmt(ev);
+  document.getElementById('ev-monthly').textContent = fmt(monthlyEv);
+  const statusEl = document.getElementById('ev-status');
+  if(ev>0) { statusEl.style.color='var(--green)'; statusEl.textContent='✅ Ijobiy kutilgan qiymat'; }
+  else if(ev<0) { statusEl.style.color='var(--red)'; statusEl.textContent='❌ Salbiy kutilgan qiymat'; }
+  else { statusEl.style.color='var(--text-muted)'; statusEl.textContent='— Break-even'; }
+}
+
+// ─── RISK OF RUIN ───
+function calcRuin() {
+  const wr = (parseFloat(document.getElementById('ruin-wr').value)||0)/100;
+  const riskPct = (parseFloat(document.getElementById('ruin-risk').value)||0)/100;
+  const ruinLimitPct = (parseFloat(document.getElementById('ruin-limit').value)||50)/100;
+  const lr = 1 - wr;
+  if(riskPct<=0 || wr<=0 || wr>=1) {
+    document.getElementById('ruin-result').textContent = '—';
+    document.getElementById('ruin-streak').textContent = '—';
+    return;
+  }
+  // streak of consecutive losses needed to lose ruinLimitPct of balance
+  const streak = Math.ceil(Math.log(1-ruinLimitPct) / Math.log(1-riskPct));
+  // simplified risk-of-ruin formula (even-money game approximation)
+  let ror;
+  if(wr <= 0.5) ror = 1;
+  else ror = Math.pow((lr/wr), (ruinLimitPct/riskPct));
+  ror = Math.max(0, Math.min(ror*100, 100));
+  document.getElementById('ruin-result').textContent = ror.toFixed(2)+'%';
+  document.getElementById('ruin-streak').textContent = streak + ' ta ketma-ket zarar';
+}
+
+// ─── PRE-TRADE CHECKLIST ───
+const CHECKLIST_ITEMS = [
+  {id:'c1', label:'Higher Timeframe trend yo\'nalishi aniqlandi (HTF bias)'},
+  {id:'c2', label:'Liquidity sweep / stop hunt kuzatildi'},
+  {id:'c3', label:'Fair Value Gap (FVG) yoki Order Block mavjud'},
+  {id:'c4', label:'Kirish narxi to\'g\'ri sessiyada (London/NY)'},
+  {id:'c5', label:'Risk/Reward nisbati kamida 1:2'},
+  {id:'c6', label:'Stop Loss va Take Profit oldindan belgilangan'},
+  {id:'c7', label:'Risk — hisobning 1-2% dan oshmaydi'},
+  {id:'c8', label:'Hissiyot xotirjam (FOMO/revenge yo\'q)'},
+  {id:'c9', label:'Muhim iqtisodiy yangilik (news) yo\'q yoki hisobga olingan'}
+];
+function renderChecklist() {
+  const saved = JSON.parse(localStorage.getItem('tp-checklist')||'{}');
+  const wrap = document.getElementById('checklist-items');
+  wrap.innerHTML = CHECKLIST_ITEMS.map(item=>`
+    <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:8px;cursor:pointer">
+      <input type="checkbox" id="chk-${item.id}" ${saved[item.id]?'checked':''} onchange="updateChecklist()" style="width:16px;height:16px">
+      <span style="font-size:13.5px">${item.label}</span>
+    </label>`).join('');
+  updateChecklist();
+}
+function updateChecklist() {
+  const state = {};
+  let checked = 0;
+  CHECKLIST_ITEMS.forEach(item=>{
+    const v = document.getElementById('chk-'+item.id).checked;
+    state[item.id] = v;
+    if(v) checked++;
+  });
+  localStorage.setItem('tp-checklist', JSON.stringify(state));
+  const pct = Math.round(checked/CHECKLIST_ITEMS.length*100);
+  const scoreEl = document.getElementById('checklist-score');
+  scoreEl.textContent = pct+'%';
+  scoreEl.className = 'calc-result '+(pct>=70?'pos':pct>=40?'neu':'neg');
+  const msgEl = document.getElementById('checklist-msg');
+  if(pct>=70) msgEl.textContent = '✅ Bitim ochish uchun yetarli shartlar bajarildi';
+  else if(pct>=40) msgEl.textContent = '⚠️ Ehtiyot bo\'ling — ba\'zi shartlar yetishmaydi';
+  else msgEl.textContent = '❌ Hozircha bitim ochish tavsiya etilmaydi';
+}
+function resetChecklist() {
+  localStorage.removeItem('tp-checklist');
+  renderChecklist();
+}
+
+// ─── P&L KALENDAR ───
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+function changeCalMonth(delta) {
+  calMonth += delta;
+  if(calMonth<0) { calMonth=11; calYear--; }
+  if(calMonth>11) { calMonth=0; calYear++; }
+  renderCalendar();
+}
+function renderCalendar() {
+  const monthNames = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+  document.getElementById('cal-title').textContent = `${monthNames[calMonth]} ${calYear}`;
+  const dayPnl = {};
+  trades.forEach(t=>{
+    const parts = t.date.split('.');
+    if(parts.length===3) {
+      const d = parseInt(parts[0]), m = parseInt(parts[1])-1, y = parseInt(parts[2]);
+      if(m===calMonth && y===calYear) dayPnl[d] = (dayPnl[d]||0) + t.pnl;
+    }
+  });
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const offset = (firstDay+6)%7; // Monday-first
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const dowLabels = ['Du','Se','Ch','Pa','Ju','Sha','Ya'];
+  let html = dowLabels.map(d=>`<div style="text-align:center;font-size:10.5px;color:var(--text-muted);font-weight:700;padding-bottom:4px">${d}</div>`).join('');
+  for(let i=0;i<offset;i++) html += `<div></div>`;
+  for(let d=1; d<=daysInMonth; d++) {
+    const pnl = dayPnl[d];
+    let bg = 'rgba(255,255,255,0.03)', color = 'var(--text-muted)';
+    if(pnl>0) { bg='rgba(0,212,170,0.15)'; color='var(--green)'; }
+    else if(pnl<0) { bg='rgba(255,71,87,0.15)'; color='var(--red)'; }
+    html += `<div style="background:${bg};border-radius:8px;padding:8px 4px;text-align:center;min-height:50px">
+      <div style="font-size:11px;color:var(--text-muted)">${d}</div>
+      <div style="font-size:11px;font-weight:700;color:${color};margin-top:4px">${pnl!==undefined?fmt(pnl):''}</div>
+    </div>`;
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+}
+
+// ─── ECONOMIC CALENDAR (static sample) ───
+const ECON_EVENTS = [
+  {impact:'high', title:'AQSh NFP (Ish o\'rinlari)', when:'Har oyning 1-jumasi'},
+  {impact:'high', title:'FOMC qaror / FED foiz stavkasi', when:'Yiliga 8 marta'},
+  {impact:'high', title:'AQSh CPI (Inflyatsiya)', when:'Har oyning o\'rtasida'},
+  {impact:'medium', title:'ECB foiz stavkasi qarori', when:'Har 6 haftada'},
+  {impact:'medium', title:'AQSh ish bilan bandlik bo\'yicha so\'rovlar (Jobless Claims)', when:'Har payshanba'},
+  {impact:'low', title:'Iste\'molchilar ishonchi indeksi', when:'Har oyning oxiri'}
+];
+function renderEconCalendar() {
+  const impactColor = {high:'var(--red)', medium:'var(--gold)', low:'var(--text-muted)'};
+  const impactLabel = {high:'🔴 Yuqori', medium:'🟡 O\'rta', low:'⚪ Past'};
+  document.getElementById('econ-cal-list').innerHTML = ECON_EVENTS.map(ev=>`
+    <div style="background:rgba(255,255,255,0.03);border-left:3px solid ${impactColor[ev.impact]};border-radius:8px;padding:10px 12px">
+      <div style="font-size:13px;font-weight:600">${ev.title}</div>
+      <div style="font-size:11.5px;color:var(--text-muted);margin-top:3px">${impactLabel[ev.impact]} • ${ev.when}</div>
+    </div>`).join('');
+}
+
+// ─── JSON BACKUP ───
+function exportJSONBackup() {
+  const backup = {
+    trades, library, strategies, goals, settings,
+    exported: new Date().toLocaleString('uz-UZ')
+  };
+  const json = JSON.stringify(backup, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `traderpro-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('✅ Backup muvaffaqiyatli saqlandi!', 'success');
+}
+function importJSONBackup(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const backup = JSON.parse(e.target.result);
+      trades = backup.trades || [];
+      library = backup.library || [];
+      strategies = backup.strategies || [];
+      goals = backup.goals || {};
+      settings = backup.settings || {name:'Trader',balance:10000};
+      localStorage.setItem('tp-trades', JSON.stringify(trades));
+      localStorage.setItem('tp-library', JSON.stringify(library));
+      localStorage.setItem('tp-strategies', JSON.stringify(strategies));
+      localStorage.setItem('tp-goals', JSON.stringify(goals));
+      localStorage.setItem('tp-settings', JSON.stringify(settings));
+      updateUser(); updateStratSelect(); initGoalsInputs();
+      renderDashboard(); renderJournal(); renderLibrary(); renderStrategies(); renderAnalytics(); renderGoals();
+      showToast('✅ Backup muvaffaqiyatli qaytarildi!', 'success');
+    } catch(err) {
+      showToast('❌ JSON faylda xatolik', 'error');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ─── SETTINGS ───
+function saveSettings() {
+  settings.name    = document.getElementById('s-name').value;
+  settings.balance = parseFloat(document.getElementById('s-balance').value)||10000;
+  localStorage.setItem('tp-settings', JSON.stringify(settings));
+  updateUser();
+  renderDashboard();
+  alert('✅ Saqlandi!');
+}
+
+function clearAll() {
+  if(!confirm('Hamma ma\'lumotni o\'chirasizmi? Bu qaytarib bo\'lmaydi!')) return;
+  trades=[]; library=[]; strategies=[];
+  localStorage.clear();
+  renderDashboard(); renderJournal(); renderLibrary(); renderStrategies(); renderAnalytics();
+  alert('✅ Tozalandi!');
+}
+
+// ─── UTILS ───
+function fmt(n) {
+  return (n>=0?'+':'') + n.toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2});
+}
+
+// resize charts on load
+window.addEventListener('resize', ()=>{ drawMainChart(); drawAnalyticsChart(); drawWeekdayChart(); });
+setTimeout(()=>{ drawMainChart(); }, 150);
+</script>
+</body>
+</html>
