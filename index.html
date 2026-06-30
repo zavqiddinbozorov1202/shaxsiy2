@@ -1049,6 +1049,87 @@
         </div>
 
         <div class="section-gap">
+          <div class="grid-4" id="risk-stats-grid">
+            <div class="card stat-card">
+              <div class="stat-glow" style="background:var(--red)"></div>
+              <div class="stat-label">Maks. Drawdown</div>
+              <div class="stat-value text-red" id="rk-maxdd">$0.00</div>
+              <span class="stat-change dn" id="rk-maxdd-pct">▼ 0.00%</span>
+            </div>
+            <div class="card stat-card">
+              <div class="stat-glow" style="background:var(--green)"></div>
+              <div class="stat-label">Eng Uzun G'alaba Seriyasi</div>
+              <div class="stat-value text-green" id="rk-winstreak">0</div>
+              <span class="stat-change up">ketma-ket g'alaba</span>
+            </div>
+            <div class="card stat-card">
+              <div class="stat-glow" style="background:var(--red)"></div>
+              <div class="stat-label">Eng Uzun Zarar Seriyasi</div>
+              <div class="stat-value text-red" id="rk-lossstreak">0</div>
+              <span class="stat-change dn">ketma-ket zarar</span>
+            </div>
+            <div class="card stat-card">
+              <div class="stat-glow" style="background:var(--gold)"></div>
+              <div class="stat-label">O'rtacha Foyda / Zarar</div>
+              <div class="stat-value" style="font-size:18px" id="rk-avgwl"><span class="text-green">$0.00</span> / <span class="text-red">$0.00</span></div>
+              <span class="stat-change up" id="rk-expectancy">Kutilma: $0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-gap">
+          <div class="grid-21">
+            <div class="card">
+              <div class="card-title">📅 Oylik Foyda/Zarar</div>
+              <canvas id="monthlyChart" height="180"></canvas>
+            </div>
+            <div class="card">
+              <div class="card-title">⏰ Sessiya Bo'yicha Tahlil</div>
+              <div id="session-breakdown" style="display:flex;flex-direction:column;gap:14px;margin-top:4px"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-gap">
+          <div class="grid-21">
+            <div class="card">
+              <div class="flex-between" style="margin-bottom:10px">
+                <div class="card-title" style="margin:0">🔥 30 Kunlik Faollik Xaritasi</div>
+                <button class="btn btn-outline text-sm" style="padding:6px 12px" onclick="nav('calendar',document.querySelector('[onclick*=calendar]'))">Kalendar →</button>
+              </div>
+              <div id="dash-heatmap" style="display:grid;grid-template-columns:repeat(10,1fr);gap:6px"></div>
+              <div class="flex-center gap-8 text-sm text-muted" style="margin-top:12px;justify-content:flex-end">
+                <span>Kam</span>
+                <span style="width:12px;height:12px;border-radius:3px;background:rgba(255,71,87,0.55);display:inline-block"></span>
+                <span style="width:12px;height:12px;border-radius:3px;background:rgba(255,255,255,0.06);display:inline-block"></span>
+                <span style="width:12px;height:12px;border-radius:3px;background:rgba(0,212,170,0.55);display:inline-block"></span>
+                <span>Ko'p</span>
+              </div>
+            </div>
+            <div class="card">
+              <div class="flex-between" style="margin-bottom:10px">
+                <div class="card-title" style="margin:0">🎯 Maqsadlar</div>
+                <button class="btn btn-outline text-sm" style="padding:6px 12px" onclick="nav('goals',document.querySelector('[onclick*=goals]'))">Barchasi →</button>
+              </div>
+              <div id="dash-goals" style="display:flex;flex-direction:column;gap:14px"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-gap">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">💱 Eng Faol Juftliklar</div>
+              <div id="top-symbols" style="display:flex;flex-direction:column;gap:12px;margin-top:4px"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">🧠 Hissiyot Tahlili</div>
+              <div id="emotion-breakdown" style="display:flex;flex-direction:column;gap:12px;margin-top:4px"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-gap">
           <div class="card">
             <div class="flex-between mb-3">
               <div class="card-title" style="margin:0">📋 So'nggi Bitimlar</div>
@@ -2024,6 +2105,244 @@ function renderDashboard() {
       </tr>`).join('');
   }
   drawMainChart();
+  renderRiskMetrics();
+  drawMonthlyChart();
+  renderSessionBreakdown();
+  renderDashHeatmap();
+  renderDashGoals();
+  renderTopSymbols();
+  renderEmotionBreakdown();
+}
+
+// ─── RISK METRICS ───
+function renderRiskMetrics() {
+  const chrono = [...trades].reverse(); // oldest -> newest
+  const startBalance = settings.balance || 10000;
+
+  let equity = startBalance, peak = startBalance, maxDD = 0, maxDDPct = 0;
+  let winStreak = 0, lossStreak = 0, curWin = 0, curLoss = 0;
+  chrono.forEach(t => {
+    equity += t.pnl;
+    if (equity > peak) peak = equity;
+    const dd = peak - equity;
+    if (dd > maxDD) { maxDD = dd; maxDDPct = peak ? dd/peak*100 : 0; }
+    if (t.pnl > 0) { curWin++; curLoss = 0; if(curWin>winStreak) winStreak=curWin; }
+    else if (t.pnl < 0) { curLoss++; curWin = 0; if(curLoss>lossStreak) lossStreak=curLoss; }
+    else { curWin=0; curLoss=0; }
+  });
+
+  const wins = trades.filter(t=>t.pnl>0);
+  const losses = trades.filter(t=>t.pnl<0);
+  const avgWin = wins.length ? wins.reduce((s,t)=>s+t.pnl,0)/wins.length : 0;
+  const avgLoss = losses.length ? losses.reduce((s,t)=>s+t.pnl,0)/losses.length : 0;
+  const wr = trades.length ? wins.length/trades.length : 0;
+  const expectancy = (wr*avgWin) + ((1-wr)*avgLoss);
+
+  setEl('rk-maxdd', '-'+Math.abs(maxDD).toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2}));
+  setEl('rk-maxdd-pct', `▼ ${maxDDPct.toFixed(2)}%`);
+  setEl('rk-winstreak', winStreak);
+  setEl('rk-lossstreak', lossStreak);
+  const avgwlEl = document.getElementById('rk-avgwl');
+  if(avgwlEl) avgwlEl.innerHTML = `<span class="text-green">${fmt(avgWin)}</span> / <span class="text-red">${fmt(avgLoss)}</span>`;
+  setEl('rk-expectancy', `Kutilma: ${fmt(expectancy)}`);
+}
+
+// ─── MONTHLY CHART ───
+function drawMonthlyChart() {
+  const canvas = document.getElementById('monthlyChart');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 600, H = 180;
+  canvas.width = W*2; canvas.height = H*2; canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  ctx.scale(2,2);
+  ctx.clearRect(0,0,W,H);
+
+  const now = new Date();
+  const months = [];
+  for(let i=5;i>=0;i--) {
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    months.push({ y:d.getFullYear(), m:d.getMonth(), label:d.toLocaleDateString('uz-UZ',{month:'short'}), pnl:0 });
+  }
+  trades.forEach(t=>{
+    const d = parseTradeDate(t);
+    if(!d) return;
+    const slot = months.find(mo=>mo.y===d.getFullYear() && mo.m===d.getMonth());
+    if(slot) slot.pnl += t.pnl;
+  });
+
+  const maxAbs = Math.max(...months.map(mo=>Math.abs(mo.pnl)), 1);
+  const bW = (W-20)/months.length;
+  const midY = H*0.55;
+  const scale = (midY-15)/maxAbs;
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(0,midY); ctx.lineTo(W,midY); ctx.stroke();
+
+  months.forEach((mo,i)=>{
+    const x = 10 + i*bW + bW*0.15;
+    const bw = bW*0.7;
+    const barH = Math.abs(mo.pnl)*scale;
+    const y = mo.pnl>=0 ? midY-barH : midY;
+    ctx.fillStyle = mo.pnl>=0 ? 'rgba(0,212,170,0.7)' : 'rgba(255,71,87,0.7)';
+    if(ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x,y,bw,barH,4); ctx.fill(); }
+    else ctx.fillRect(x,y,bw,barH);
+    ctx.fillStyle = 'var(--text-muted)';
+    ctx.font = '11px Inter'; ctx.textAlign = 'center';
+    ctx.fillText(mo.label, x+bw/2, H-4);
+  });
+}
+
+// ─── SESSION BREAKDOWN ───
+function renderSessionBreakdown() {
+  const wrap = document.getElementById('session-breakdown');
+  if(!wrap) return;
+  const sessions = [
+    {key:'asia', label:'🌏 Asia', color:'var(--blue)'},
+    {key:'london', label:'🇬🇧 London', color:'var(--gold)'},
+    {key:'ny', label:'🇺🇸 New York', color:'var(--green)'},
+    {key:'overlap', label:'🔁 Overlap', color:'var(--red)'}
+  ];
+  const data = sessions.map(s=>{
+    const list = trades.filter(t=>t.session===s.key);
+    const pnl = list.reduce((sum,t)=>sum+t.pnl,0);
+    const wins = list.filter(t=>t.pnl>0).length;
+    const wr = list.length ? Math.round(wins/list.length*100) : 0;
+    return {...s, pnl, count:list.length, wr};
+  });
+  const maxAbs = Math.max(...data.map(d=>Math.abs(d.pnl)),1);
+  if(!trades.length) {
+    wrap.innerHTML = '<div class="text-muted text-sm">Hali bitim yo\'q</div>';
+    return;
+  }
+  wrap.innerHTML = data.map(d=>`
+    <div>
+      <div class="flex-between text-sm mb-1">
+        <span class="text-muted">${d.label} <span class="text-muted" style="opacity:.7">(${d.count} ta, WR ${d.wr}%)</span></span>
+        <span class="fw-700 ${d.pnl>=0?'text-green':'text-red'}">${fmt(d.pnl)}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(Math.abs(d.pnl)/maxAbs*100,100)}%;background:${d.color}"></div></div>
+    </div>`).join('');
+}
+
+// ─── 30-DAY HEATMAP ───
+function renderDashHeatmap() {
+  const wrap = document.getElementById('dash-heatmap');
+  if(!wrap) return;
+  const days = [];
+  const today = new Date(); today.setHours(0,0,0,0);
+  for(let i=29;i>=0;i--) {
+    const d = new Date(today); d.setDate(today.getDate()-i);
+    days.push({ date:d, pnl:0, count:0 });
+  }
+  trades.forEach(t=>{
+    const d = parseTradeDate(t);
+    if(!d) return;
+    const slot = days.find(x=>x.date.toDateString()===d.toDateString());
+    if(slot) { slot.pnl += t.pnl; slot.count++; }
+  });
+  const maxAbs = Math.max(...days.map(d=>Math.abs(d.pnl)),1);
+  wrap.innerHTML = days.map(d=>{
+    let bg = 'rgba(255,255,255,0.06)';
+    if(d.count) {
+      const intensity = Math.min(Math.abs(d.pnl)/maxAbs,1);
+      bg = d.pnl>=0 ? `rgba(0,212,170,${0.18+intensity*0.6})` : `rgba(255,71,87,${0.18+intensity*0.6})`;
+    }
+    const dateLabel = d.date.toLocaleDateString('uz-UZ');
+    const title = d.count ? `${dateLabel}: ${fmt(d.pnl)} (${d.count} bitim)` : `${dateLabel}: bitim yo'q`;
+    return `<div title="${title}" style="aspect-ratio:1;border-radius:4px;background:${bg};border:1px solid var(--border)"></div>`;
+  }).join('');
+}
+
+// ─── GOALS MINI WIDGET ───
+function renderDashGoals() {
+  const wrap = document.getElementById('dash-goals');
+  if(!wrap) return;
+  const now = new Date();
+  const todayStr = now.toLocaleDateString('uz-UZ');
+  const startOfWeek = new Date(now); startOfWeek.setDate(now.getDate()-((now.getDay()+6)%7)); startOfWeek.setHours(0,0,0,0);
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  let dailyPnl=0, weeklyPnl=0, monthlyPnl=0;
+  trades.forEach(t=>{
+    const d = parseTradeDate(t);
+    if(!d) return;
+    if(t.date===todayStr) dailyPnl+=t.pnl;
+    if(d>=startOfWeek) weeklyPnl+=t.pnl;
+    if(d>=startOfMonth) monthlyPnl+=t.pnl;
+  });
+
+  const items = [
+    {label:"Kunlik maqsad", val:dailyPnl, target:goals.daily, color:'var(--green)'},
+    {label:"Haftalik maqsad", val:weeklyPnl, target:goals.weekly, color:'var(--blue)'},
+    {label:"Oylik maqsad", val:monthlyPnl, target:goals.monthly, color:'var(--gold)'}
+  ];
+  wrap.innerHTML = items.map(it=>{
+    const target = it.target || 0;
+    const pct = target ? Math.min(Math.max(it.val/target*100,0),100) : 0;
+    return `<div>
+      <div class="flex-between text-sm mb-1">
+        <span class="text-muted">${it.label}</span>
+        <span class="fw-700 ${it.val>=0?'text-green':'text-red'}">${fmt(it.val)} ${target?`/ $${target}`:''}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${it.color}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+// ─── TOP SYMBOLS ───
+function renderTopSymbols() {
+  const wrap = document.getElementById('top-symbols');
+  if(!wrap) return;
+  if(!trades.length) { wrap.innerHTML = '<div class="text-muted text-sm">Hali bitim yo\'q</div>'; return; }
+  const map = {};
+  trades.forEach(t=>{
+    if(!map[t.symbol]) map[t.symbol] = { symbol:t.symbol, pnl:0, count:0, wins:0 };
+    map[t.symbol].pnl += t.pnl;
+    map[t.symbol].count++;
+    if(t.pnl>0) map[t.symbol].wins++;
+  });
+  const list = Object.values(map).sort((a,b)=>Math.abs(b.pnl)-Math.abs(a.pnl)).slice(0,5);
+  const maxAbs = Math.max(...list.map(s=>Math.abs(s.pnl)),1);
+  wrap.innerHTML = list.map(s=>{
+    const wr = s.count ? Math.round(s.wins/s.count*100) : 0;
+    return `<div>
+      <div class="flex-between text-sm mb-1">
+        <span class="mono fw-700">${s.symbol}</span>
+        <span class="fw-700 ${s.pnl>=0?'text-green':'text-red'}">${fmt(s.pnl)}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(Math.abs(s.pnl)/maxAbs*100,100)}%;background:${s.pnl>=0?'var(--green)':'var(--red)'}"></div></div>
+      <div class="text-muted text-sm" style="margin-top:2px">${s.count} ta bitim · WR ${wr}%</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── EMOTION BREAKDOWN ───
+function renderEmotionBreakdown() {
+  const wrap = document.getElementById('emotion-breakdown');
+  if(!wrap) return;
+  if(!trades.length) { wrap.innerHTML = '<div class="text-muted text-sm">Hali bitim yo\'q</div>'; return; }
+  const labels = {
+    calm:'😌 Xotirjam', confident:'💪 Ishonchli', fomo:'⚡ FOMO',
+    fear:"😟 Qo'rquv", greed:"🤑 Ochko'zlik", revenge:"😤 Qasos"
+  };
+  const map = {};
+  trades.forEach(t=>{
+    const key = t.emotion || 'calm';
+    if(!map[key]) map[key] = { pnl:0, count:0 };
+    map[key].pnl += t.pnl;
+    map[key].count++;
+  });
+  const list = Object.entries(map).map(([key,v])=>({ key, label:labels[key]||key, ...v }))
+    .sort((a,b)=>b.count-a.count);
+  const maxAbs = Math.max(...list.map(s=>Math.abs(s.pnl)),1);
+  wrap.innerHTML = list.map(s=>`
+    <div>
+      <div class="flex-between text-sm mb-1">
+        <span class="text-muted">${s.label} <span style="opacity:.7">(${s.count} ta)</span></span>
+        <span class="fw-700 ${s.pnl>=0?'text-green':'text-red'}">${fmt(s.pnl)}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(Math.abs(s.pnl)/maxAbs*100,100)}%;background:${s.pnl>=0?'var(--green)':'var(--red)'}"></div></div>
+    </div>`).join('');
 }
 
 function setEl(id, val, cls='') {
