@@ -423,6 +423,31 @@
   .tab:hover { color:var(--text); }
   .tab.active { color:var(--green); border-bottom-color:var(--green); }
 
+  /* ─── CALC TAB GROUPS (wrapping pill tabs) ─── */
+  .calc-tabgroup { margin-bottom:18px; }
+  .calc-tabgroup-label {
+    font-size:10.5px; font-weight:700; color:var(--text-muted);
+    letter-spacing:1px; text-transform:uppercase; margin:0 0 8px 2px;
+  }
+  .tabs.wrap-tabs {
+    flex-wrap:wrap; row-gap:8px; border-bottom:none; margin-bottom:10px;
+  }
+  .tab.pill {
+    border:1px solid var(--border); border-radius:20px;
+    padding:8px 15px; margin-bottom:0; background:var(--bg-card);
+  }
+  .tab.pill:hover { border-color:var(--border-bright); color:var(--text); }
+  .tab.pill.active {
+    background:var(--green-dim); color:var(--green);
+    border-color:var(--border-bright);
+  }
+  .calc-formula-box {
+    background:rgba(0,212,170,0.05); border-color:rgba(0,212,170,0.2);
+  }
+  .calc-formula-box.warn { background:rgba(255,71,87,0.05); border-color:rgba(255,71,87,0.2); }
+  .calc-result.sm { font-size:19px; padding:12px; }
+  .fib-table td.lvl-key { color:var(--gold); font-family:var(--mono); }
+
   /* ─── MODAL ─── */
   .modal-overlay {
     position:fixed; inset:0; background:rgba(0,0,0,0.7);
@@ -1726,6 +1751,35 @@ body.ux-clicking #ux-cursor-dot { transform: scale(1.8); background: #3B82F6; }
   </div>
 </div>
 
+<!-- DAY TRADES MODAL (Kalendar kun tafsiloti) -->
+<div class="modal-overlay" id="dayTradesModal">
+  <div class="modal" style="width:520px">
+    <div class="modal-title">
+      <span id="dt-date">Kun tafsiloti</span>
+      <button class="modal-close" onclick="closeModal('dayTradesModal')">✕</button>
+    </div>
+    <div class="grid-3" style="margin-bottom:14px;gap:10px">
+      <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:12px;text-align:center">
+        <div class="text-muted text-sm">Kunlik P&L</div>
+        <div id="dt-pnl" class="fw-700 mt-4" style="font-size:18px"></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:12px;text-align:center">
+        <div class="text-muted text-sm">Bitimlar</div>
+        <div id="dt-count" class="fw-700 mt-4" style="font-size:18px"></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:12px;text-align:center">
+        <div class="text-muted text-sm">Win Rate</div>
+        <div id="dt-wr" class="fw-700 mt-4" style="font-size:18px"></div>
+      </div>
+    </div>
+    <div id="dt-list" style="display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto"></div>
+    <div class="flex-between mt-16">
+      <span></span>
+      <button class="btn btn-outline" onclick="closeModal('dayTradesModal')">Yopish</button>
+    </div>
+  </div>
+</div>
+
 <!-- ADD/EDIT STRATEGY MODAL -->
 <div class="modal-overlay" id="stratModal">
   <div class="modal" style="width:560px">
@@ -1802,6 +1856,7 @@ body.ux-clicking #ux-cursor-dot { transform: scale(1.8); background: #3B82F6; }
     <div class="flex-between">
       <button class="btn btn-danger" onclick="deleteCurrentStrat()">🗑️ O'chirish</button>
       <div style="display:flex;gap:8px">
+        <button class="btn btn-outline" onclick="duplicateCurrentStrat()">📋 Nusxalash</button>
         <button class="btn btn-outline" onclick="editCurrentStrat()">✏️ Tahrirlash</button>
         <button class="btn btn-outline" onclick="closeModal('stratViewModal')">Yopish</button>
       </div>
@@ -2223,14 +2278,37 @@ body.ux-clicking #ux-cursor-dot { transform: scale(1.8); background: #3B82F6; }
 
       <!-- ════ CALCULATOR ════ -->
       <div class="page" id="page-calc">
-        <div class="tabs">
-          <button class="tab active" onclick="switchCalc('pos',this)">📍 Pozitsiya Hajmi</button>
-          <button class="tab" onclick="switchCalc('rr',this)">⚖️ Risk/Reward</button>
-          <button class="tab" onclick="switchCalc('pip',this)">📐 Pip Qiymati</button>
-          <button class="tab" onclick="switchCalc('margin',this)">💰 Margin</button>
-          <button class="tab" onclick="switchCalc('kelly',this)">🎯 Kelly Criterion</button>
-          <button class="tab" onclick="switchCalc('ev',this)">📊 Expected Value</button>
-          <button class="tab" onclick="switchCalc('ruin',this)">☠️ Risk of Ruin</button>
+
+        <div class="calc-tabgroup">
+          <div class="calc-tabgroup-label">💰 Risk va Pozitsiya Boshqaruvi</div>
+          <div class="tabs wrap-tabs">
+            <button class="tab pill active" onclick="switchCalc('pos',this)">📍 Pozitsiya Hajmi</button>
+            <button class="tab pill" onclick="switchCalc('rr',this)">⚖️ Risk/Reward</button>
+            <button class="tab pill" onclick="switchCalc('pnl',this)">💵 Foyda/Zarar (P&amp;L)</button>
+            <button class="tab pill" onclick="switchCalc('breakeven',this)">🎯 Breakeven Win Rate</button>
+            <button class="tab pill" onclick="switchCalc('dd',this)">📉 Drawdown/Tiklanish</button>
+          </div>
+        </div>
+
+        <div class="calc-tabgroup">
+          <div class="calc-tabgroup-label">📐 Bozor va Bitim Vositalari</div>
+          <div class="tabs wrap-tabs">
+            <button class="tab pill" onclick="switchCalc('pip',this)">📏 Pip Qiymati</button>
+            <button class="tab pill" onclick="switchCalc('margin',this)">🏦 Margin</button>
+            <button class="tab pill" onclick="switchCalc('swap',this)">🌙 Swap/Rollover</button>
+            <button class="tab pill" onclick="switchCalc('fib',this)">🌀 Fibonacci</button>
+            <button class="tab pill" onclick="switchCalc('dca',this)">📊 O'rtacha Narx (DCA)</button>
+          </div>
+        </div>
+
+        <div class="calc-tabgroup">
+          <div class="calc-tabgroup-label">📈 Statistika, Ehtimollik va O'sish</div>
+          <div class="tabs wrap-tabs">
+            <button class="tab pill" onclick="switchCalc('kelly',this)">🎲 Kelly Criterion</button>
+            <button class="tab pill" onclick="switchCalc('ev',this)">📊 Expected Value</button>
+            <button class="tab pill" onclick="switchCalc('ruin',this)">☠️ Risk of Ruin</button>
+            <button class="tab pill" onclick="switchCalc('compound',this)">🚀 Compound O'sish</button>
+          </div>
         </div>
 
         <!-- POS SIZE -->
@@ -2491,6 +2569,329 @@ body.ux-clicking #ux-cursor-dot { transform: scale(1.8); background: #3B82F6; }
             </div>
           </div>
         </div>
+
+        <!-- P&L (FOYDA/ZARAR) -->
+        <div id="calc-pnl" style="display:none">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">⚙️ Bitim Ma'lumotlari</div>
+              <div class="form-group">
+                <label class="form-label">Yo'nalish</label>
+                <select class="form-select" id="pnl-dir" onchange="calcPnl()">
+                  <option value="buy">Buy (Long)</option>
+                  <option value="sell">Sell (Short)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Juftlik turi (pip razryadi)</label>
+                <select class="form-select" id="pnl-pipsize" onchange="calcPnl()">
+                  <option value="0.0001">Standart (masalan EURUSD) — 0.0001</option>
+                  <option value="0.01">JPY juftliklar (masalan USDJPY) — 0.01</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Kirish Narxi</label>
+                <input class="form-input" id="pnl-entry" type="number" placeholder="1.08500" oninput="calcPnl()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Chiqish Narxi</label>
+                <input class="form-input" id="pnl-exit" type="number" placeholder="1.09000" oninput="calcPnl()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Lot Hajmi</label>
+                <input class="form-input" id="pnl-lot" type="number" placeholder="1.0" oninput="calcPnl()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Pip Qiymati ($ / lot)</label>
+                <input class="form-input" id="pnl-pipval" type="number" placeholder="10" oninput="calcPnl()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Hisob Balansi ($) — ixtiyoriy, % uchun</label>
+                <input class="form-input" id="pnl-balance" type="number" placeholder="10000" oninput="calcPnl()">
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">📊 Natija</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div>
+                  <div class="form-label">Pips</div>
+                  <div class="calc-result neu" id="pnl-pips">0.0 pip</div>
+                </div>
+                <div>
+                  <div class="form-label">Foyda/Zarar ($)</div>
+                  <div class="calc-result pos" id="pnl-result">$0.00</div>
+                </div>
+                <div>
+                  <div class="form-label">Balansga nisbatan</div>
+                  <div class="calc-result sm neu" id="pnl-pct">—</div>
+                </div>
+                <div class="divider"></div>
+                <div class="card calc-formula-box">
+                  <div class="text-sm text-muted" style="line-height:1.6">
+                    💡 <strong>Formula:</strong><br>
+                    Pips = (Chiqish − Kirish) ÷ Pip razryadi (Sell uchun teskari)<br>
+                    Natija = Pips × Lot × Pip Qiymati
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BREAKEVEN WIN RATE -->
+        <div id="calc-breakeven" style="display:none">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">⚙️ Ma'lumotlar</div>
+              <div class="form-group">
+                <label class="form-label">Risk/Reward Nisbati (masalan 1:2 uchun — 2)</label>
+                <input class="form-input" id="be-rr" type="number" placeholder="2" step="0.1" oninput="calcBreakeven()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Komissiya/Spred xarajati (risk ulushidan %, ixtiyoriy)</label>
+                <input class="form-input" id="be-cost" type="number" placeholder="0" oninput="calcBreakeven()">
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">📊 Natija</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div>
+                  <div class="form-label">Breakeven Win Rate</div>
+                  <div class="calc-result pos" id="be-result">33.33%</div>
+                </div>
+                <div class="text-sm text-muted" id="be-msg">Bu ko'rsatkichdan yuqori win rate — foyda keltiradi</div>
+                <div class="divider"></div>
+                <div class="card calc-formula-box">
+                  <div class="text-sm text-muted" style="line-height:1.6">
+                    💡 <strong>Formula:</strong><br>
+                    Breakeven WR% = 1 ÷ (1 + RR) × 100<br>
+                    RR = Reward ÷ Risk (masalan 1:2 → RR=2)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DRAWDOWN & RECOVERY -->
+        <div id="calc-dd" style="display:none">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">⚙️ Ma'lumotlar</div>
+              <div class="form-group">
+                <label class="form-label">Drawdown (% hisob yo'qotilgan)</label>
+                <input class="form-input" id="dd-pct" type="number" placeholder="20" min="0" max="99" oninput="calcDD()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Boshlang'ich Balans ($) — ixtiyoriy</label>
+                <input class="form-input" id="dd-balance" type="number" placeholder="10000" oninput="calcDD()">
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">📊 Tiklanish uchun kerak</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div>
+                  <div class="form-label">Kerakli O'sish (%)</div>
+                  <div class="calc-result neg" id="dd-gain">0%</div>
+                </div>
+                <div>
+                  <div class="form-label">Joriy Balans ($)</div>
+                  <div class="calc-result neu" id="dd-current">$0.00</div>
+                </div>
+                <div class="divider"></div>
+                <div class="card calc-formula-box warn">
+                  <div class="text-sm text-muted" style="line-height:1.6">
+                    💡 <strong>Formula:</strong> Kerakli o'sish % = DD ÷ (100 − DD) × 100<br>
+                    Masalan: 50% drawdown'dan tiklanish uchun +100% foyda kerak.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SWAP / ROLLOVER -->
+        <div id="calc-swap" style="display:none">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">⚙️ Ma'lumotlar</div>
+              <div class="form-group">
+                <label class="form-label">Yo'nalish</label>
+                <select class="form-select" id="swap-dir" onchange="calcSwap()">
+                  <option value="buy">Buy (Long) Swap</option>
+                  <option value="sell">Sell (Short) Swap</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Swap (pip / lot / kecha)</label>
+                <input class="form-input" id="swap-points" type="number" placeholder="-2.5" step="0.1" oninput="calcSwap()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Lot Hajmi</label>
+                <input class="form-input" id="swap-lot" type="number" placeholder="1.0" oninput="calcSwap()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Pip Qiymati ($)</label>
+                <input class="form-input" id="swap-pipval" type="number" placeholder="10" oninput="calcSwap()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Necha kecha ushlab turiladi</label>
+                <input class="form-input" id="swap-nights" type="number" placeholder="5" oninput="calcSwap()">
+              </div>
+              <div class="form-group" style="display:flex;align-items:center;gap:10px">
+                <input type="checkbox" id="swap-triple" onchange="calcSwap()" style="width:16px;height:16px">
+                <label class="form-label" style="margin:0" for="swap-triple">Chorshanba kunlik 3x swap hisobga olinsin</label>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">📊 Jami Swap</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div>
+                  <div class="form-label">Jami Swap ($)</div>
+                  <div class="calc-result neu" id="swap-result">$0.00</div>
+                </div>
+                <div class="divider"></div>
+                <div class="card calc-formula-box">
+                  <div class="text-sm text-muted" style="line-height:1.6">
+                    💡 <strong>Formula:</strong><br>
+                    Jami Swap = Swap(pip) × Lot × Pip Qiymati × Kechalar soni<br>
+                    (Chorshanba belgilansa +2 kecha qo'shiladi — odatiy uch barobar swap kuni)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FIBONACCI -->
+        <div id="calc-fib" style="display:none">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">⚙️ Ma'lumotlar</div>
+              <div class="form-group">
+                <label class="form-label">Yuqori Narx (Swing High)</label>
+                <input class="form-input" id="fib-high" type="number" placeholder="1.10000" oninput="calcFib()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Past Narx (Swing Low)</label>
+                <input class="form-input" id="fib-low" type="number" placeholder="1.08000" oninput="calcFib()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Trend Yo'nalishi</label>
+                <select class="form-select" id="fib-dir" onchange="calcFib()">
+                  <option value="up">Bullish (pastdan yuqoriga)</option>
+                  <option value="down">Bearish (yuqoridan pastga)</option>
+                </select>
+              </div>
+              <div class="text-sm text-muted" style="line-height:1.6;margin-top:6px">
+                💡 Retracement — narx qaytishi mumkin bo'lgan darajalar. Extension — trend davom etganda mumkin bo'lgan maqsad darajalar.
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">📊 Fibonacci Darajalari</div>
+              <div style="overflow-x:auto">
+                <table class="data-table fib-table" id="fib-table">
+                  <thead><tr><th>Daraja</th><th>Narx</th><th>Tur</th></tr></thead>
+                  <tbody id="fib-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DCA / AVERAGE ENTRY -->
+        <div id="calc-dca" style="display:none">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">⚙️ Kirishlar (bo'sh qatorlar e'tiborga olinmaydi)</div>
+              <div class="form-group"><label class="form-label">1-narx / 1-lot</label>
+                <div style="display:flex;gap:8px">
+                  <input class="form-input" id="dca-p1" type="number" placeholder="Narx" oninput="calcDCA()">
+                  <input class="form-input" id="dca-l1" type="number" placeholder="Lot" oninput="calcDCA()">
+                </div>
+              </div>
+              <div class="form-group"><label class="form-label">2-narx / 2-lot</label>
+                <div style="display:flex;gap:8px">
+                  <input class="form-input" id="dca-p2" type="number" placeholder="Narx" oninput="calcDCA()">
+                  <input class="form-input" id="dca-l2" type="number" placeholder="Lot" oninput="calcDCA()">
+                </div>
+              </div>
+              <div class="form-group"><label class="form-label">3-narx / 3-lot</label>
+                <div style="display:flex;gap:8px">
+                  <input class="form-input" id="dca-p3" type="number" placeholder="Narx" oninput="calcDCA()">
+                  <input class="form-input" id="dca-l3" type="number" placeholder="Lot" oninput="calcDCA()">
+                </div>
+              </div>
+              <div class="form-group"><label class="form-label">4-narx / 4-lot</label>
+                <div style="display:flex;gap:8px">
+                  <input class="form-input" id="dca-p4" type="number" placeholder="Narx" oninput="calcDCA()">
+                  <input class="form-input" id="dca-l4" type="number" placeholder="Lot" oninput="calcDCA()">
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">📊 Natija</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div>
+                  <div class="form-label">O'rtacha Kirish Narxi</div>
+                  <div class="calc-result pos" id="dca-avg">0.00000</div>
+                </div>
+                <div>
+                  <div class="form-label">Jami Lot Hajmi</div>
+                  <div class="calc-result neu" id="dca-lot">0.00</div>
+                </div>
+                <div class="divider"></div>
+                <div class="card calc-formula-box">
+                  <div class="text-sm text-muted" style="line-height:1.6">
+                    💡 <strong>Formula:</strong><br>
+                    O'rtacha Narx = Σ(Narx × Lot) ÷ Σ(Lot)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COMPOUND GROWTH -->
+        <div id="calc-compound" style="display:none">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">⚙️ Ma'lumotlar</div>
+              <div class="form-group">
+                <label class="form-label">Boshlang'ich Balans ($)</label>
+                <input class="form-input" id="cp-balance" type="number" placeholder="10000" oninput="calcCompound()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Oylik O'rtacha Daromad (%)</label>
+                <input class="form-input" id="cp-rate" type="number" placeholder="10" step="0.1" oninput="calcCompound()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Necha Oy</label>
+                <input class="form-input" id="cp-months" type="number" placeholder="12" oninput="calcCompound()">
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">📊 Natija</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div>
+                  <div class="form-label">Yakuniy Balans</div>
+                  <div class="calc-result pos" id="cp-final">$0.00</div>
+                </div>
+                <div>
+                  <div class="form-label">Umumiy O'sish</div>
+                  <div class="calc-result neu" id="cp-growth">0%</div>
+                </div>
+                <div class="divider"></div>
+                <div class="card calc-formula-box">
+                  <div class="text-sm text-muted" style="line-height:1.6">
+                    💡 <strong>Formula:</strong> Yakuniy = Balans × (1 + r)^oylar<br>
+                    ⚠️ Real bozorda doimiy barqaror foiz kafolatlanmaydi — bu faqat matematik proyeksiya.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- ════ PRE-TRADE CHECKLIST ════ -->
@@ -2520,31 +2921,59 @@ body.ux-clicking #ux-cursor-dot { transform: scale(1.8); background: #3B82F6; }
 
       <!-- ════ P&L KALENDAR ════ -->
       <div class="page" id="page-calendar">
+        <div class="grid-4" id="cal-summary" style="margin-bottom:16px"></div>
         <div class="grid-12">
           <div class="card">
             <div class="flex-between" style="margin-bottom:14px">
               <button class="btn btn-outline" style="padding:6px 12px" onclick="changeCalMonth(-1)">←</button>
-              <div class="card-title" style="margin:0" id="cal-title">—</div>
+              <div style="text-align:center">
+                <div class="card-title" style="margin:0" id="cal-title">—</div>
+                <button class="btn btn-outline text-sm" style="padding:2px 10px;margin-top:4px;font-size:11px" onclick="goCalToday()">Bugun</button>
+              </div>
               <button class="btn btn-outline" style="padding:6px 12px" onclick="changeCalMonth(1)">→</button>
             </div>
             <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px"></div>
+            <div class="flex-between mt-16" style="gap:12px;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)"><span style="width:10px;height:10px;border-radius:3px;background:rgba(0,212,170,0.35);display:inline-block"></span> Foydali kun</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)"><span style="width:10px;height:10px;border-radius:3px;background:rgba(255,71,87,0.35);display:inline-block"></span> Zararli kun</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)"><span style="width:10px;height:10px;border-radius:3px;border:1.5px solid var(--gold);display:inline-block"></span> Bugun</div>
+            </div>
           </div>
           <div class="card">
             <div class="card-title">📰 Iqtisodiy Kalendar (Muhim Yangiliklar)</div>
-            <div id="econ-cal-list" style="display:flex;flex-direction:column;gap:10px;margin-top:8px"></div>
+            <div class="tabs" style="margin:12px 0 0;border:none;gap:6px" id="econ-filter-tabs">
+              <button class="tab active" style="padding:6px 12px;font-size:12px" onclick="filterEcon('all',this)">Barchasi</button>
+              <button class="tab" style="padding:6px 12px;font-size:12px" onclick="filterEcon('high',this)">🔴 Yuqori</button>
+              <button class="tab" style="padding:6px 12px;font-size:12px" onclick="filterEcon('medium',this)">🟡 O'rta</button>
+              <button class="tab" style="padding:6px 12px;font-size:12px" onclick="filterEcon('low',this)">⚪ Past</button>
+            </div>
+            <div id="econ-cal-list" style="display:flex;flex-direction:column;gap:10px;margin-top:14px"></div>
             <div class="text-muted text-sm mt-16">⚠️ Bu ro'yxat namunaviy/statik. Real vaqtdagi yangiliklar uchun ForexFactory yoki Investing.com kalendaridan foydalaning.</div>
           </div>
         </div>
       </div>
       <div class="page" id="page-strategies">
-        <div class="flex-between" style="margin-bottom:20px">
+        <div class="grid-4" id="strat-summary" style="margin-bottom:16px"></div>
+        <div class="flex-between" style="margin-bottom:16px;flex-wrap:wrap;gap:12px">
           <div class="tabs" style="margin:0;border:none">
             <button class="tab active" onclick="filterStrat('all',this)">Barchasi</button>
             <button class="tab" onclick="filterStrat('scalping',this)">Scalping</button>
             <button class="tab" onclick="filterStrat('swing',this)">Swing</button>
             <button class="tab" onclick="filterStrat('trend',this)">Trend</button>
+            <button class="tab" onclick="filterStrat('reversal',this)">Reversal</button>
+            <button class="tab" onclick="filterStrat('breakout',this)">Breakout</button>
           </div>
-          <button class="btn btn-primary" onclick="openModal('stratModal')">➕ Strategiya Qo'shish</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input class="form-input" id="strat-search" placeholder="🔍 Strategiya qidirish..." style="width:190px" oninput="renderStrategies()">
+            <select class="form-select" id="strat-sort" style="width:170px" onchange="renderStrategies()">
+              <option value="new">Yangi qo'shilgan</option>
+              <option value="pnl">Net P&L bo'yicha</option>
+              <option value="winrate">Win Rate bo'yicha</option>
+              <option value="trades">Bitimlar soni bo'yicha</option>
+              <option value="name">Nomi (A-Z)</option>
+            </select>
+            <button class="btn btn-primary" onclick="openModal('stratModal')">➕ Strategiya Qo'shish</button>
+          </div>
         </div>
         <div class="grid-3" id="strat-grid"></div>
       </div>
@@ -3900,22 +4329,74 @@ function filterStrat(f, el) {
   renderStrategies();
 }
 
+function stratMetrics(s) {
+  const relTrades = trades.filter(t=>t.strategy===s.name);
+  const relWins = relTrades.filter(t=>t.pnl>0).length;
+  const netPnl = relTrades.reduce((sum,t)=>sum+t.pnl,0);
+  const realWR = relTrades.length ? Math.round(relWins/relTrades.length*100) : null;
+  return { relTrades, netPnl, realWR };
+}
+
 function renderStrategies() {
   const grid = document.getElementById('strat-grid');
+  const search = (document.getElementById('strat-search')?.value || '').trim().toLowerCase();
+  const sortBy = document.getElementById('strat-sort')?.value || 'new';
+
+  // ── Summary bar (barcha strategiyalar bo'yicha) ──
+  const withTrades = strategies.map(s=>({s, ...stratMetrics(s)})).filter(x=>x.relTrades.length);
+  const totalPnlAll = withTrades.reduce((sum,x)=>sum+x.netPnl,0);
+  const avgWR = withTrades.length ? Math.round(withTrades.reduce((s,x)=>s+x.realWR,0)/withTrades.length) : 0;
+  let best = null;
+  withTrades.forEach(x=>{ if(!best || x.netPnl>best.netPnl) best=x; });
+  document.getElementById('strat-summary').innerHTML = `
+    <div class="card stat-card">
+      <div class="stat-glow" style="background:var(--gold)"></div>
+      <div class="stat-label">Jami Strategiyalar</div>
+      <div class="stat-value" style="font-size:22px">${strategies.length}</div>
+      <span class="stat-change up">${withTrades.length} tasi ishlatilgan</span>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-glow" style="background:${totalPnlAll>=0?'var(--green)':'var(--red)'}"></div>
+      <div class="stat-label">Jami Net P&L</div>
+      <div class="stat-value ${totalPnlAll>=0?'text-green':'text-red'}" style="font-size:22px">${fmt(totalPnlAll)}</div>
+      <span class="stat-change ${totalPnlAll>=0?'up':'dn'}">Barcha strategiyalar</span>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-glow" style="background:var(--blue)"></div>
+      <div class="stat-label">O'rtacha Win Rate</div>
+      <div class="stat-value" style="font-size:22px">${avgWR}%</div>
+      <span class="stat-change ${avgWR>=50?'up':'dn'}">Real natijalar bo'yicha</span>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-glow" style="background:var(--green)"></div>
+      <div class="stat-label">Eng samarali</div>
+      <div class="stat-value text-green" style="font-size:16px;line-height:1.3">${best ? best.s.name : '—'}</div>
+      <span class="stat-change ${best && best.netPnl>=0?'up':'dn'}">${best ? fmt(best.netPnl) : 'Ma\'lumot yo\'q'}</span>
+    </div>`;
+
   let data = strategies;
   if(stratFilter !== 'all') data = data.filter(s => s.type === stratFilter);
-  if(!data.length) {
-    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-muted)">⚡ Strategiya qo'shilmagan.<br><br><button class="btn btn-primary" onclick="openModal('stratModal')">➕ Birinchi Strategiyani Qo'shish</button></div>`;
+  if(search) data = data.filter(s => s.name.toLowerCase().includes(search) || (s.tags||[]).some(t=>t.toLowerCase().includes(search)));
+
+  const withMetrics = data.map(s=>({s, ...stratMetrics(s)}));
+  if(sortBy==='pnl') withMetrics.sort((a,b)=>b.netPnl-a.netPnl);
+  else if(sortBy==='winrate') withMetrics.sort((a,b)=>(b.realWR??b.s.win)-(a.realWR??a.s.win));
+  else if(sortBy==='trades') withMetrics.sort((a,b)=>b.relTrades.length-a.relTrades.length);
+  else if(sortBy==='name') withMetrics.sort((a,b)=>a.s.name.localeCompare(b.s.name));
+  else withMetrics.sort((a,b)=>b.s.id-a.s.id);
+
+  if(!withMetrics.length) {
+    grid.innerHTML = strategies.length
+      ? `<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-muted)">🔍 Hech narsa topilmadi. Filtr yoki qidiruvni o'zgartiring.</div>`
+      : `<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-muted)">⚡ Strategiya qo'shilmagan.<br><br><button class="btn btn-primary" onclick="openModal('stratModal')">➕ Birinchi Strategiyani Qo'shish</button></div>`;
     return;
   }
-  grid.innerHTML = data.map(s => {
+  grid.innerHTML = withMetrics.map(({s, relTrades, netPnl, realWR}) => {
     const stars = [1,2,3,4,5].map(i=>`<span style="color:${i<=Math.round(s.win/20)?'var(--gold)':'rgba(255,255,255,0.15)'}">${i<=Math.round(s.win/20)?'★':'☆'}</span>`).join('');
-    const relTrades = trades.filter(t=>t.strategy===s.name);
-    const relWins = relTrades.filter(t=>t.pnl>0).length;
-    const realWR = relTrades.length ? Math.round(relWins/relTrades.length*100) : null;
     const typeColors = {trend:'var(--green)',scalping:'var(--red)',swing:'var(--blue)',reversal:'var(--gold)',breakout:'#A78BFA'};
     const typeColor = typeColors[s.type] || 'var(--text-muted)';
-    return `<div class="strategy-card" onclick="openStratView(${s.id})" style="cursor:pointer">
+    const edgeColor = relTrades.length ? (netPnl>=0?'var(--green)':'var(--red)') : 'transparent';
+    return `<div class="strategy-card" onclick="openStratView(${s.id})" style="cursor:pointer;border-left:3px solid ${edgeColor}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
         <div>
           <span style="font-size:10px;font-weight:700;color:${typeColor};text-transform:uppercase;letter-spacing:.8px;background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:20px">${s.type||'strategy'}</span>
@@ -3926,15 +4407,15 @@ function renderStrategies() {
       </div>
       <div class="strategy-stats">
         <div class="st-stat">
+          <div class="st-val ${relTrades.length ? (netPnl>=0?'text-green':'text-red') : 'text-muted'}" style="font-size:14px">${relTrades.length ? fmt(netPnl) : '—'}</div>
+          <div class="st-lbl">Net P&L</div>
+        </div>
+        <div class="st-stat">
           <div class="st-val text-green">${realWR !== null ? realWR+'%' : s.win+'%'}</div>
           <div class="st-lbl">${realWR !== null ? 'Real WR' : 'WR (taxm.)'}</div>
         </div>
         <div class="st-stat">
-          <div class="st-val text-gold">${s.rr||'1:2'}</div>
-          <div class="st-lbl">R/R</div>
-        </div>
-        <div class="st-stat">
-          <div class="st-val">${relTrades.length || s.trades || 0}</div>
+          <div class="st-val">${relTrades.length || 0}</div>
           <div class="st-lbl">Bitimlar</div>
         </div>
       </div>
@@ -4004,6 +4485,18 @@ function deleteCurrentStrat() {
   strategies = strategies.filter(s=>s.id!==currentStratId);
   localStorage.setItem('tp-strategies', JSON.stringify(strategies));
   closeModal('stratViewModal');
+  updateStratSelect();
+  renderStrategies();
+}
+
+function duplicateCurrentStrat() {
+  const s = strategies.find(s=>s.id===currentStratId);
+  if(!s) return;
+  const copy = {...s, id: Date.now(), name: s.name + ' (nusxa)'};
+  strategies.push(copy);
+  localStorage.setItem('tp-strategies', JSON.stringify(strategies));
+  closeModal('stratViewModal');
+  updateStratSelect();
   renderStrategies();
 }
 
@@ -4484,7 +4977,7 @@ function drawWeekdayChart() {
 
 // ─── CALCULATORS ───
 function switchCalc(id, el) {
-  ['pos','rr','pip','margin','kelly','ev','ruin'].forEach(c=>{
+  ['pos','rr','pnl','breakeven','dd','pip','margin','swap','fib','dca','kelly','ev','ruin','compound'].forEach(c=>{
     const el2 = document.getElementById('calc-'+c);
     if(el2) el2.style.display = c===id ? 'block' : 'none';
   });
@@ -4602,6 +5095,129 @@ function calcRuin() {
   document.getElementById('ruin-streak').textContent = streak + ' ta ketma-ket zarar';
 }
 
+// ─── P&L (FOYDA/ZARAR) ───
+function calcPnl() {
+  const dir = document.getElementById('pnl-dir').value;
+  const pipSize = parseFloat(document.getElementById('pnl-pipsize').value)||0.0001;
+  const entry = parseFloat(document.getElementById('pnl-entry').value)||0;
+  const exit = parseFloat(document.getElementById('pnl-exit').value)||0;
+  const lot = parseFloat(document.getElementById('pnl-lot').value)||0;
+  const pipVal = parseFloat(document.getElementById('pnl-pipval').value)||10;
+  const balance = parseFloat(document.getElementById('pnl-balance').value)||0;
+
+  const diff = dir==='buy' ? (exit-entry) : (entry-exit);
+  const pips = pipSize ? diff/pipSize : 0;
+  const result = pips * lot * pipVal;
+
+  document.getElementById('pnl-pips').textContent = (pips>=0?'+':'')+pips.toFixed(1)+' pip';
+  const resEl = document.getElementById('pnl-result');
+  resEl.textContent = (result>=0?'+':'')+result.toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2});
+  resEl.className = 'calc-result '+(result>0?'pos':result<0?'neg':'neu');
+
+  const pctEl = document.getElementById('pnl-pct');
+  if(balance>0) {
+    const pct = result/balance*100;
+    pctEl.textContent = (pct>=0?'+':'')+pct.toFixed(2)+'%';
+    pctEl.className = 'calc-result sm '+(pct>0?'pos':pct<0?'neg':'neu');
+  } else {
+    pctEl.textContent = '—';
+    pctEl.className = 'calc-result sm neu';
+  }
+}
+
+// ─── BREAKEVEN WIN RATE ───
+function calcBreakeven() {
+  const rr = parseFloat(document.getElementById('be-rr').value)||0;
+  const costPct = (parseFloat(document.getElementById('be-cost').value)||0)/100;
+  const resEl = document.getElementById('be-result');
+  const msgEl = document.getElementById('be-msg');
+  if(rr<=0) { resEl.textContent='—'; msgEl.textContent=''; return; }
+  // breakeven win rate accounting for extra cost as a fraction of risk unit
+  const be = (1+costPct) / (1+rr) * 100;
+  resEl.textContent = be.toFixed(2)+'%';
+  msgEl.textContent = `Ushbu ${rr}R nisbatda foyda uchun win rate ${be.toFixed(1)}% dan yuqori bo'lishi kerak`;
+}
+
+// ─── DRAWDOWN & RECOVERY ───
+function calcDD() {
+  const dd = parseFloat(document.getElementById('dd-pct').value)||0;
+  const balance = parseFloat(document.getElementById('dd-balance').value)||0;
+  const gainEl = document.getElementById('dd-gain');
+  const curEl = document.getElementById('dd-current');
+  if(dd<=0 || dd>=100) { gainEl.textContent='0%'; curEl.textContent='$0.00'; return; }
+  const gain = dd/(100-dd)*100;
+  gainEl.textContent = '+'+gain.toFixed(2)+'%';
+  if(balance>0) {
+    const current = balance*(1-dd/100);
+    curEl.textContent = current.toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2});
+  } else {
+    curEl.textContent = '—';
+  }
+}
+
+// ─── SWAP / ROLLOVER ───
+function calcSwap() {
+  const dir = document.getElementById('swap-dir').value;
+  const points = parseFloat(document.getElementById('swap-points').value)||0;
+  const lot = parseFloat(document.getElementById('swap-lot').value)||0;
+  const pipVal = parseFloat(document.getElementById('swap-pipval').value)||10;
+  const nights = parseFloat(document.getElementById('swap-nights').value)||0;
+  const triple = document.getElementById('swap-triple').checked;
+  const effectiveNights = nights + (triple ? 2 : 0);
+  const total = points * lot * pipVal * effectiveNights;
+  const resEl = document.getElementById('swap-result');
+  resEl.textContent = (total>=0?'+':'')+total.toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2});
+  resEl.className = 'calc-result '+(total>0?'pos':total<0?'neg':'neu');
+}
+
+// ─── FIBONACCI ───
+function calcFib() {
+  const high = parseFloat(document.getElementById('fib-high').value)||0;
+  const low = parseFloat(document.getElementById('fib-low').value)||0;
+  const dir = document.getElementById('fib-dir').value;
+  const tbody = document.getElementById('fib-tbody');
+  if(!high || !low || high<=low) { tbody.innerHTML = '<tr><td colspan="3" class="text-muted">Narxlarni kiriting (Yuqori &gt; Past)</td></tr>'; return; }
+  const range = high - low;
+  const retLevels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
+  const extLevels = [1.272, 1.618, 2, 2.618];
+  let rows = '';
+  retLevels.forEach(r=>{
+    // bullish: retracement measured down from high; bearish: measured up from low
+    const price = dir==='up' ? (high - range*r) : (low + range*r);
+    rows += `<tr><td class="lvl-key">${(r*100).toFixed(1)}%</td><td>${price.toFixed(5)}</td><td class="text-muted text-sm">Retracement</td></tr>`;
+  });
+  extLevels.forEach(r=>{
+    // extension continues beyond the swing in the trend direction
+    const price = dir==='up' ? (high + range*(r-1)) : (low - range*(r-1));
+    rows += `<tr><td class="lvl-key">${(r*100).toFixed(1)}%</td><td>${price.toFixed(5)}</td><td class="text-muted text-sm">Extension</td></tr>`;
+  });
+  tbody.innerHTML = rows;
+}
+
+// ─── DCA / AVERAGE ENTRY PRICE ───
+function calcDCA() {
+  let sumPL = 0, sumL = 0;
+  for(let i=1;i<=4;i++) {
+    const p = parseFloat(document.getElementById('dca-p'+i).value)||0;
+    const l = parseFloat(document.getElementById('dca-l'+i).value)||0;
+    if(p>0 && l>0) { sumPL += p*l; sumL += l; }
+  }
+  const avg = sumL ? sumPL/sumL : 0;
+  document.getElementById('dca-avg').textContent = avg.toFixed(5);
+  document.getElementById('dca-lot').textContent = sumL.toFixed(2);
+}
+
+// ─── COMPOUND GROWTH ───
+function calcCompound() {
+  const balance = parseFloat(document.getElementById('cp-balance').value)||0;
+  const rate = (parseFloat(document.getElementById('cp-rate').value)||0)/100;
+  const months = parseFloat(document.getElementById('cp-months').value)||0;
+  const final = balance * Math.pow(1+rate, months);
+  const growth = balance ? (final-balance)/balance*100 : 0;
+  document.getElementById('cp-final').textContent = final.toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2});
+  document.getElementById('cp-growth').textContent = (growth>=0?'+':'')+growth.toFixed(1)+'%';
+}
+
 // ─── PRE-TRADE CHECKLIST ───
 const CHECKLIST_ITEMS = [
   {id:'c1', label:'Higher Timeframe trend yo\'nalishi aniqlandi (HTF bias)'},
@@ -4656,17 +5272,67 @@ function changeCalMonth(delta) {
   if(calMonth>11) { calMonth=0; calYear++; }
   renderCalendar();
 }
+function goCalToday() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  renderCalendar();
+}
 function renderCalendar() {
   const monthNames = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
   document.getElementById('cal-title').textContent = `${monthNames[calMonth]} ${calYear}`;
-  const dayPnl = {};
+  const dayPnl = {}, dayCount = {};
   trades.forEach(t=>{
-    const parts = t.date.split('.');
+    const parts = (t.date||'').split('.');
     if(parts.length===3) {
       const d = parseInt(parts[0]), m = parseInt(parts[1])-1, y = parseInt(parts[2]);
-      if(m===calMonth && y===calYear) dayPnl[d] = (dayPnl[d]||0) + t.pnl;
+      if(m===calMonth && y===calYear) {
+        dayPnl[d] = (dayPnl[d]||0) + t.pnl;
+        dayCount[d] = (dayCount[d]||0) + 1;
+      }
     }
   });
+  const now = new Date();
+  const isCurMonth = now.getFullYear()===calYear && now.getMonth()===calMonth;
+  const todayD = now.getDate();
+
+  // ── Monthly summary bar ──
+  const activeDays = Object.keys(dayPnl);
+  const monthTotal = activeDays.reduce((s,d)=>s+dayPnl[d],0);
+  const winDays = activeDays.filter(d=>dayPnl[d]>0).length;
+  const lossDays = activeDays.filter(d=>dayPnl[d]<0).length;
+  let bestDay = null, worstDay = null;
+  activeDays.forEach(d=>{
+    if(bestDay===null || dayPnl[d]>dayPnl[bestDay]) bestDay=d;
+    if(worstDay===null || dayPnl[d]<dayPnl[worstDay]) worstDay=d;
+  });
+  const dayWinRate = activeDays.length ? Math.round(winDays/activeDays.length*100) : 0;
+  document.getElementById('cal-summary').innerHTML = `
+    <div class="card stat-card">
+      <div class="stat-glow" style="background:${monthTotal>=0?'var(--green)':'var(--red)'}"></div>
+      <div class="stat-label">Oylik P&L</div>
+      <div class="stat-value ${monthTotal>=0?'text-green':'text-red'}" style="font-size:22px">${fmt(monthTotal)}</div>
+      <span class="stat-change ${monthTotal>=0?'up':'dn'}">${activeDays.length} savdo kuni</span>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-glow" style="background:var(--blue)"></div>
+      <div class="stat-label">Kunlar (Foydali/Zararli)</div>
+      <div class="stat-value" style="font-size:22px"><span class="text-green">${winDays}</span> / <span class="text-red">${lossDays}</span></div>
+      <span class="stat-change ${dayWinRate>=50?'up':'dn'}">Kun WR: ${dayWinRate}%</span>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-glow" style="background:var(--green)"></div>
+      <div class="stat-label">Eng yaxshi kun</div>
+      <div class="stat-value text-green" style="font-size:22px">${bestDay!==null?fmt(dayPnl[bestDay]):'—'}</div>
+      <span class="stat-change up">${bestDay!==null?bestDay+' '+monthNames[calMonth]:'—'}</span>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-glow" style="background:var(--red)"></div>
+      <div class="stat-label">Eng yomon kun</div>
+      <div class="stat-value text-red" style="font-size:22px">${worstDay!==null?fmt(dayPnl[worstDay]):'—'}</div>
+      <span class="stat-change dn">${worstDay!==null?worstDay+' '+monthNames[calMonth]:'—'}</span>
+    </div>`;
+
   const firstDay = new Date(calYear, calMonth, 1).getDay();
   const offset = (firstDay+6)%7; // Monday-first
   const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
@@ -4675,32 +5341,83 @@ function renderCalendar() {
   for(let i=0;i<offset;i++) html += `<div></div>`;
   for(let d=1; d<=daysInMonth; d++) {
     const pnl = dayPnl[d];
+    const count = dayCount[d]||0;
     let bg = 'rgba(255,255,255,0.03)', color = 'var(--text-muted)';
     if(pnl>0) { bg='rgba(0,212,170,0.15)'; color='var(--green)'; }
     else if(pnl<0) { bg='rgba(255,71,87,0.15)'; color='var(--red)'; }
-    html += `<div style="background:${bg};border-radius:8px;padding:8px 4px;text-align:center;min-height:50px">
+    const isToday = isCurMonth && d===todayD;
+    const border = isToday ? 'border:1.5px solid var(--gold);' : '';
+    const clickable = count>0;
+    html += `<div style="background:${bg};${border}border-radius:8px;padding:8px 4px;text-align:center;min-height:50px;position:relative;${clickable?'cursor:pointer':''}" ${clickable?`onclick="openDayTrades(${d})"`:''} title="${clickable?count+' ta bitim — tafsilotlar uchun bosing':''}">
       <div style="font-size:11px;color:var(--text-muted)">${d}</div>
       <div style="font-size:11px;font-weight:700;color:${color};margin-top:4px">${pnl!==undefined?fmt(pnl):''}</div>
+      ${count>0?`<div style="position:absolute;top:3px;right:3px;font-size:8.5px;color:var(--text-muted);background:rgba(255,255,255,0.06);border-radius:20px;padding:1px 4px">${count}</div>`:''}
     </div>`;
   }
   document.getElementById('cal-grid').innerHTML = html;
 }
 
+function openDayTrades(d) {
+  const dd = String(d).padStart(2,'0'), mm = String(calMonth+1).padStart(2,'0');
+  const dateStr = `${dd}.${mm}.${calYear}`;
+  const dayTrades = trades.filter(t=>t.date===dateStr);
+  if(!dayTrades.length) return;
+  const monthNames = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+  document.getElementById('dt-date').textContent = `📅 ${d}-${monthNames[calMonth]} ${calYear}`;
+  const total = dayTrades.reduce((s,t)=>s+t.pnl,0);
+  const wins = dayTrades.filter(t=>t.pnl>0).length;
+  document.getElementById('dt-pnl').textContent = fmt(total);
+  document.getElementById('dt-pnl').className = 'fw-700 mt-4 '+(total>=0?'text-green':'text-red');
+  document.getElementById('dt-count').textContent = dayTrades.length;
+  document.getElementById('dt-wr').textContent = Math.round(wins/dayTrades.length*100)+'%';
+  document.getElementById('dt-list').innerHTML = dayTrades.map(t=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);border-radius:8px;padding:10px 12px;cursor:pointer" onclick="closeModal('dayTradesModal');openTradeView(${t.id})">
+      <div>
+        <span style="font-weight:600">${t.symbol}</span>
+        <span class="badge ${t.dir==='BUY'?'buy':'sell'}" style="font-size:10px;margin-left:6px">${t.dir}</span>
+        <div class="text-muted text-sm" style="margin-top:2px">${t.strategy||'—'}</div>
+      </div>
+      <span class="${t.pnl>=0?'profit':'loss'}" style="font-weight:700">${fmt(t.pnl)}</span>
+    </div>`).join('');
+  openModal('dayTradesModal');
+}
+
 // ─── ECONOMIC CALENDAR (static sample) ───
 const ECON_EVENTS = [
-  {impact:'high', title:'AQSh NFP (Ish o\'rinlari)', when:'Har oyning 1-jumasi'},
-  {impact:'high', title:'FOMC qaror / FED foiz stavkasi', when:'Yiliga 8 marta'},
-  {impact:'high', title:'AQSh CPI (Inflyatsiya)', when:'Har oyning o\'rtasida'},
-  {impact:'medium', title:'ECB foiz stavkasi qarori', when:'Har 6 haftada'},
-  {impact:'medium', title:'AQSh ish bilan bandlik bo\'yicha so\'rovlar (Jobless Claims)', when:'Har payshanba'},
-  {impact:'low', title:'Iste\'molchilar ishonchi indeksi', when:'Har oyning oxiri'}
+  {impact:'high', title:'AQSh NFP (Ish o\'rinlari)', when:'Har oyning 1-jumasi', cur:'USD'},
+  {impact:'high', title:'FOMC qaror / FED foiz stavkasi', when:'Yiliga 8 marta', cur:'USD'},
+  {impact:'high', title:'AQSh CPI (Inflyatsiya)', when:'Har oyning o\'rtasida', cur:'USD'},
+  {impact:'high', title:'ECB foiz stavkasi qarori', when:'Har 6 haftada', cur:'EUR'},
+  {impact:'high', title:'AQSh Yalpi Ichki Mahsulot (GDP)', when:'Choraklik', cur:'USD'},
+  {impact:'medium', title:'AQSh ish bilan bandlik bo\'yicha so\'rovlar (Jobless Claims)', when:'Har payshanba', cur:'USD'},
+  {impact:'medium', title:'Angliya Bank foiz stavkasi (BOE)', when:'Har 6 haftada', cur:'GBP'},
+  {impact:'medium', title:'Yaponiya Bank (BOJ) qarori', when:'Har 6-7 haftada', cur:'JPY'},
+  {impact:'medium', title:'AQSh Chakana savdo (Retail Sales)', when:'Har oyning o\'rtasida', cur:'USD'},
+  {impact:'low', title:'Iste\'molchilar ishonchi indeksi', when:'Har oyning oxiri', cur:'USD'},
+  {impact:'low', title:'PMI (Ishlab chiqarish indeksi)', when:'Har oyning boshida', cur:'EUR'}
 ];
+let econFilter = 'all';
+function filterEcon(f, el) {
+  econFilter = f;
+  document.querySelectorAll('#econ-filter-tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderEconCalendar();
+}
 function renderEconCalendar() {
   const impactColor = {high:'var(--red)', medium:'var(--gold)', low:'var(--text-muted)'};
   const impactLabel = {high:'🔴 Yuqori', medium:'🟡 O\'rta', low:'⚪ Past'};
-  document.getElementById('econ-cal-list').innerHTML = ECON_EVENTS.map(ev=>`
+  let data = ECON_EVENTS;
+  if(econFilter!=='all') data = data.filter(e=>e.impact===econFilter);
+  if(!data.length) {
+    document.getElementById('econ-cal-list').innerHTML = `<div class="text-muted text-sm" style="text-align:center;padding:20px">Bu filtr bo'yicha yangilik yo'q</div>`;
+    return;
+  }
+  document.getElementById('econ-cal-list').innerHTML = data.map(ev=>`
     <div style="background:rgba(255,255,255,0.03);border-left:3px solid ${impactColor[ev.impact]};border-radius:8px;padding:10px 12px">
-      <div style="font-size:13px;font-weight:600">${ev.title}</div>
+      <div class="flex-between">
+        <div style="font-size:13px;font-weight:600">${ev.title}</div>
+        <span class="lib-tag" style="font-size:9.5px">${ev.cur||''}</span>
+      </div>
       <div style="font-size:11.5px;color:var(--text-muted);margin-top:3px">${impactLabel[ev.impact]} • ${ev.when}</div>
     </div>`).join('');
 }
