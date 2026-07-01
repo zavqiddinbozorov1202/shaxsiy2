@@ -2078,6 +2078,22 @@ body.ux-clicking #ux-cursor-dot { transform: scale(1.8); background: #3B82F6; }
 
       <!-- ════ DASHBOARD ════ -->
       <div class="page active" id="page-dashboard">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-title" style="margin-bottom:2px">⚡ Tezkor Amallar</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+            <button class="btn btn-primary" style="padding:9px 16px;font-size:12.5px" onclick="openModal('tradeModal')">➕ Bitim Qo'shish</button>
+            <button class="btn btn-outline" style="padding:9px 16px;font-size:12.5px" onclick="nav('checklist',document.querySelector('[onclick*=checklist]'))">✅ Pre-Trade Tekshiruv</button>
+            <button class="btn btn-outline" style="padding:9px 16px;font-size:12.5px" onclick="nav('calc',document.querySelector('[onclick*=calc]'))">🧮 Kalkulyator</button>
+            <button class="btn btn-outline" style="padding:9px 16px;font-size:12.5px" onclick="nav('strategies',document.querySelector('[onclick*=strategies]'))">⚡ Strategiyalar</button>
+            <button class="btn btn-outline" style="padding:9px 16px;font-size:12.5px" onclick="nav('goals',document.querySelector('[onclick*=goals]'))">🎯 Maqsadlar</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-title">🎯 Bugungi Fokus</div>
+          <div class="grid-5" id="today-focus-grid" style="margin-top:12px"></div>
+        </div>
+
         <div class="grid-5">
           <div class="card stat-card">
             <div class="stat-glow" style="background:var(--blue)"></div>
@@ -2248,6 +2264,25 @@ body.ux-clicking #ux-cursor-dot { transform: scale(1.8); background: #3B82F6; }
             <div class="card">
               <div class="card-title">🧠 Hissiyot Tahlili</div>
               <div id="emotion-breakdown" style="display:flex;flex-direction:column;gap:12px;margin-top:4px"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-gap">
+          <div class="grid-2">
+            <div class="card">
+              <div class="flex-between" style="margin-bottom:10px">
+                <div class="card-title" style="margin:0">🏆 Top Strategiyalar</div>
+                <button class="btn btn-outline text-sm" style="padding:6px 12px" onclick="nav('strategies',document.querySelector('[onclick*=strategies]'))">Barchasi →</button>
+              </div>
+              <div id="dash-top-strats" style="display:flex;flex-direction:column;gap:12px;margin-top:4px"></div>
+            </div>
+            <div class="card">
+              <div class="flex-between" style="margin-bottom:10px">
+                <div class="card-title" style="margin:0">📜 Trading Kontraktim</div>
+                <button class="btn btn-outline text-sm" style="padding:6px 12px" onclick="nav('goals',document.querySelector('[onclick*=goals]'))">Tahrirlash →</button>
+              </div>
+              <div id="dash-contract" class="text-sm text-dim" style="line-height:1.75;white-space:pre-wrap;max-height:150px;overflow-y:auto"></div>
             </div>
           </div>
         </div>
@@ -3878,6 +3913,9 @@ function renderDashboard() {
   renderDashGoals();
   renderTopSymbols();
   renderEmotionBreakdown();
+  renderTodayFocus();
+  renderDashTopStrats();
+  renderDashContract();
 }
 
 // ─── RISK METRICS ───
@@ -4053,6 +4091,81 @@ function renderDashGoals() {
       <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${it.color}"></div></div>
     </div>`;
   }).join('');
+}
+
+// ─── TODAY'S FOCUS (Bugungi Fokus command strip) ───
+function renderTodayFocus() {
+  const grid = document.getElementById('today-focus-grid');
+  if(!grid) return;
+  const now = new Date();
+  const todayStr = now.toLocaleDateString('uz-UZ');
+  const todayTrades = trades.filter(t=>t.date===todayStr);
+  const dailyPnl = todayTrades.reduce((s,t)=>s+t.pnl,0);
+  const maxTrades = goals.maxtrades||0;
+  const maxLoss = goals.maxloss||0;
+  const todayLoss = Math.abs(Math.min(dailyPnl,0));
+
+  const sortedAll = trades.slice().sort((a,b)=>(parseTradeDate(a)||0)-(parseTradeDate(b)||0));
+  let consecLoss = 0;
+  for(let i=sortedAll.length-1;i>=0;i--){ if(sortedAll[i].pnl<0) consecLoss++; else break; }
+  const maxConsec = goals.maxconsec||0;
+
+  const checklistHistory = JSON.parse(localStorage.getItem('tp-checklist-history')||'[]');
+  const lastChecklist = checklistHistory.length ? checklistHistory[0].pct : null;
+
+  let lossStatus = { label:'✅ Xavfsiz', color:'var(--green)' };
+  if(maxLoss && todayLoss>=maxLoss) lossStatus = { label:'⛔ Limitga yetdi', color:'var(--red)' };
+  else if(maxLoss && todayLoss>=maxLoss*0.7) lossStatus = { label:"⚠️ Ehtiyot bo'ling", color:'var(--gold)' };
+
+  let consecStatus = { label:'✅ Xavfsiz', color:'var(--green)' };
+  if(maxConsec && consecLoss>=maxConsec) consecStatus = { label:'⛔ To\'xtash kerak', color:'var(--red)' };
+  else if(maxConsec && consecLoss>=maxConsec-1) consecStatus = { label:'⚠️ Diqqat', color:'var(--gold)' };
+
+  const chips = [
+    { label:'Bugungi P&L', value: fmt(dailyPnl), color: dailyPnl>=0?'var(--green)':'var(--red)' },
+    { label:'Bugungi Bitimlar', value: todayTrades.length + (maxTrades?' / '+maxTrades:''), color: maxTrades && todayTrades.length>=maxTrades ? 'var(--red)' : 'var(--blue)' },
+    { label:'Ketma-ket Zarar', value: consecLoss + (maxConsec?' / '+maxConsec:''), color: consecStatus.color },
+    { label:'Oxirgi Tayyorlik', value: lastChecklist!==null ? lastChecklist+'%' : '—', color: lastChecklist!==null ? (lastChecklist>=70?'var(--green)':lastChecklist>=40?'var(--gold)':'var(--red)') : 'var(--text-muted)' },
+    { label:'Zarar Limiti', value: lossStatus.label, color: lossStatus.color }
+  ];
+
+  grid.innerHTML = chips.map(c=>`
+    <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;text-align:center">
+      <div style="font-size:15px;font-weight:700;color:${c.color}">${c.value}</div>
+      <div style="font-size:10.5px;color:var(--text-muted);margin-top:4px">${c.label}</div>
+    </div>`).join('');
+}
+
+// ─── TOP STRATEGIES (dashboard mini widget) ───
+function renderDashTopStrats() {
+  const wrap = document.getElementById('dash-top-strats');
+  if(!wrap) return;
+  if(typeof strategies === 'undefined' || !strategies.length) { wrap.innerHTML = '<div class="text-muted text-sm">Strategiya qo\'shilmagan</div>'; return; }
+  const withMetrics = strategies.map(s=>({s, ...stratMetrics(s)})).filter(x=>x.relTrades.length);
+  if(!withMetrics.length) { wrap.innerHTML = '<div class="text-muted text-sm">Hali bitim bilan bog\'langan strategiya yo\'q</div>'; return; }
+  withMetrics.sort((a,b)=>b.netPnl-a.netPnl);
+  const top = withMetrics.slice(0,4);
+  const maxAbs = Math.max(...top.map(x=>Math.abs(x.netPnl)),1);
+  wrap.innerHTML = top.map(x=>`
+    <div>
+      <div class="flex-between text-sm mb-1">
+        <span class="fw-700">${x.s.name} <span class="text-muted" style="opacity:.7;font-weight:400">(${x.relTrades.length} ta, WR ${x.realWR}%)</span></span>
+        <span class="fw-700 ${x.netPnl>=0?'text-green':'text-red'}">${fmt(x.netPnl)}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(Math.abs(x.netPnl)/maxAbs*100,100)}%;background:${x.netPnl>=0?'var(--green)':'var(--red)'}"></div></div>
+    </div>`).join('');
+}
+
+// ─── TRADING CONTRACT REMINDER (dashboard) ───
+function renderDashContract() {
+  const wrap = document.getElementById('dash-contract');
+  if(!wrap) return;
+  const text = localStorage.getItem('tp-contract') || '';
+  if(!text.trim()) {
+    wrap.innerHTML = '<span class="text-muted">Hali yozilmagan. Maqsadlar bo\'limida shaxsiy trading qoidalaringizni yozib qo\'ying.</span>';
+    return;
+  }
+  wrap.textContent = text;
 }
 
 // ─── TOP SYMBOLS ───
