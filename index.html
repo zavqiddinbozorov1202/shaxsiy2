@@ -499,6 +499,7 @@
   .text-green { color:var(--green); }
   .text-red   { color:var(--red); }
   .text-gold  { color:var(--gold); }
+  .text-dim   { color:var(--text-dim); }
   .text-muted { color:var(--text-muted); }
   .text-sm    { font-size:12px; }
   .fw-700     { font-weight:700; }
@@ -1864,6 +1865,56 @@ body.ux-clicking #ux-cursor-dot { transform: scale(1.8); background: #3B82F6; }
   </div>
 </div>
 
+<!-- LIBRARY STRATEGY VIEW MODAL -->
+<div class="modal-overlay" id="libStratViewModal">
+  <div class="modal" style="width:620px;max-height:85vh;overflow-y:auto">
+    <div class="modal-title">
+      <span id="ls-name">Strategiya</span>
+      <button class="modal-close" onclick="closeModal('libStratViewModal')">✕</button>
+    </div>
+    <div class="grid-3" style="margin-bottom:16px;gap:10px">
+      <div style="background:rgba(0,212,170,0.07);border:1px solid rgba(0,212,170,0.2);border-radius:10px;padding:14px;text-align:center">
+        <div class="stat-value text-green" id="ls-win" style="font-size:20px">—</div>
+        <div class="text-muted text-sm">Odatiy Win Rate</div>
+      </div>
+      <div style="background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:14px;text-align:center">
+        <div class="stat-value text-gold" id="ls-rr" style="font-size:20px">—</div>
+        <div class="text-muted text-sm">Risk/Reward</div>
+      </div>
+      <div style="background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:14px;text-align:center">
+        <div class="stat-value" id="ls-tf" style="font-size:15px;line-height:1.3">—</div>
+        <div class="text-muted text-sm">Taymfreym</div>
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:14px;margin-bottom:14px;line-height:1.7;font-size:13.5px" id="ls-desc"></div>
+    <div class="grid-2" style="gap:12px;margin-bottom:14px">
+      <div style="background:rgba(0,212,170,0.05);border:1px solid rgba(0,212,170,0.15);border-radius:10px;padding:14px">
+        <div class="card-title" style="margin-bottom:8px;font-size:13px">🎯 Kirish Qoidalari</div>
+        <ul id="ls-entry" style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.8;color:var(--text-dim)"></ul>
+      </div>
+      <div style="background:rgba(255,71,87,0.05);border:1px solid rgba(255,71,87,0.15);border-radius:10px;padding:14px">
+        <div class="card-title" style="margin-bottom:8px;font-size:13px">🚪 Chiqish / Risk Qoidalari</div>
+        <ul id="ls-exit" style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.8;color:var(--text-dim)"></ul>
+      </div>
+    </div>
+    <div class="grid-2" style="gap:12px;margin-bottom:16px">
+      <div style="background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.15);border-radius:10px;padding:14px">
+        <div class="card-title" style="margin-bottom:8px;font-size:13px">✅ Afzalliklari</div>
+        <ul id="ls-pros" style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.8;color:var(--text-dim)"></ul>
+      </div>
+      <div style="background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.15);border-radius:10px;padding:14px">
+        <div class="card-title" style="margin-bottom:8px;font-size:13px">⚠️ Kamchiliklari</div>
+        <ul id="ls-cons" style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.8;color:var(--text-dim)"></ul>
+      </div>
+    </div>
+    <div class="lib-tags" id="ls-tags" style="margin-bottom:18px"></div>
+    <div class="flex-between">
+      <button class="btn btn-outline" onclick="closeModal('libStratViewModal')">Yopish</button>
+      <button class="btn btn-primary" onclick="addLibStratToMine()">➕ Menikiga Qo'shish</button>
+    </div>
+  </div>
+</div>
+
 <!-- ADD LIBRARY MODAL -->
 <div class="modal-overlay" id="libModal">
   <div class="modal">
@@ -2898,22 +2949,71 @@ body.ux-clicking #ux-cursor-dot { transform: scale(1.8); background: #3B82F6; }
       <div class="page" id="page-checklist">
         <div class="grid-21">
           <div class="card">
-            <div class="card-title">✅ ICT / Price Action Pre-Trade Tekshiruv Ro'yxati</div>
-            <div id="checklist-items" style="display:flex;flex-direction:column;gap:10px;margin-top:10px"></div>
+            <div class="flex-between" style="flex-wrap:wrap;gap:10px">
+              <div class="card-title" style="margin:0">✅ ICT / SMC / Price Action Pre-Trade Tekshiruv Ro'yxati</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap" id="checklist-template-tabs">
+                <button class="tab active" style="padding:6px 12px;font-size:11px;border-bottom:none;border-radius:20px;background:rgba(0,212,170,0.12);color:var(--green)" onclick="setChecklistTemplate('all',this)">Barchasi</button>
+                <button class="tab" style="padding:6px 12px;font-size:11px;border-bottom:none;border-radius:20px" onclick="setChecklistTemplate('scalping',this)">⚡ Scalping</button>
+                <button class="tab" style="padding:6px 12px;font-size:11px;border-bottom:none;border-radius:20px" onclick="setChecklistTemplate('swing',this)">🔄 Swing</button>
+                <button class="tab" style="padding:6px 12px;font-size:11px;border-bottom:none;border-radius:20px" onclick="setChecklistTemplate('position',this)">📆 Position</button>
+              </div>
+            </div>
+            <div id="checklist-items" style="display:flex;flex-direction:column;gap:18px;margin-top:16px"></div>
             <div class="flex-between mt-16">
               <button class="btn btn-outline" onclick="resetChecklist()">↺ Tozalash</button>
-              <button class="btn btn-primary" onclick="openModal('tradeModal')">➕ Bitim Qo'shish</button>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-outline" onclick="saveChecklistToHistory()">📝 Natijani Saqlash</button>
+                <button class="btn btn-primary" onclick="openModal('tradeModal')">➕ Bitim Qo'shish</button>
+              </div>
             </div>
           </div>
-          <div class="card">
-            <div class="card-title">📈 Tayyorlik Darajasi</div>
-            <div style="text-align:center;margin-top:10px">
-              <div class="calc-result pos" id="checklist-score" style="font-size:34px">0%</div>
-              <div class="text-muted text-sm mt-8" id="checklist-msg">Shartlarni belgilang</div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="card">
+              <div class="card-title">📈 Tayyorlik Darajasi</div>
+              <div style="text-align:center;margin-top:10px">
+                <div class="calc-result pos" id="checklist-score" style="font-size:34px">0%</div>
+                <div class="text-muted text-sm mt-8" id="checklist-msg">Shartlarni belgilang</div>
+              </div>
+              <div class="divider"></div>
+              <div class="text-sm text-muted" style="line-height:1.7">
+                💡 Tavsiya: kamida 70% shartlar bajarilmaguncha bitim ochmang. Bu hissiyotga asoslangan (FOMO/revenge) savdolarni kamaytiradi.
+              </div>
+              <div class="divider"></div>
+              <div class="text-muted text-sm" style="margin-bottom:8px">🕓 So'nggi tekshiruvlar</div>
+              <div id="checklist-history" style="display:flex;flex-direction:column;gap:6px;max-height:160px;overflow-y:auto"></div>
             </div>
-            <div class="divider"></div>
-            <div class="text-sm text-muted" style="line-height:1.7">
-              💡 Tavsiya: kamida 70% shartlar bajarilmaguncha bitim ochmang. Bu hissiyotga asoslangan (FOMO/revenge) savdolarni kamaytiradi.
+            <div class="card">
+              <div class="card-title">📚 Savdo Bilimlari — Tezkor Ma'lumotnoma</div>
+              <div style="display:flex;flex-direction:column;gap:14px;margin-top:10px;font-size:12.5px;line-height:1.6">
+                <div>
+                  <div class="fw-700 text-gold" style="margin-bottom:4px">⚖️ Pozitsiya Hajmi Formulasi</div>
+                  <div class="text-dim">Lot = (Balans × Risk%) / (SL pips × Pip qiymati)<br><span class="text-muted">Masalan: $1000 × 1% = $10 risk. SL=20 pips, pip=$1 → 0.5 lot.</span></div>
+                </div>
+                <div>
+                  <div class="fw-700 text-gold" style="margin-bottom:4px">🕐 Savdo Sessiyalari (UTC)</div>
+                  <div class="text-dim">
+                    Sidney: 21:00–06:00 &nbsp;|&nbsp; Tokio: 23:00–08:00<br>
+                    London: 07:00–16:00 &nbsp;|&nbsp; Nyu-York: 12:00–21:00<br>
+                    <span class="text-green">London–NY overlap (12:00–16:00)</span> — eng yuqori likvidlik
+                  </div>
+                </div>
+                <div>
+                  <div class="fw-700 text-gold" style="margin-bottom:4px">🕯️ Asosiy Sham Patternlari</div>
+                  <div class="text-dim">Pin Bar / Hammer, Engulfing (Bullish/Bearish), Doji (ikkilanish), Morning/Evening Star, Inside Bar (siqilish)</div>
+                </div>
+                <div>
+                  <div class="fw-700 text-gold" style="margin-bottom:4px">📐 ICT/SMC Asosiy Tushunchalar</div>
+                  <div class="text-dim">BOS (Break of Structure), CHoCH (Change of Character), FVG (Fair Value Gap), Order Block, Liquidity Sweep, Judas Swing, OTE (62–79% Fibonacci)</div>
+                </div>
+                <div>
+                  <div class="fw-700 text-gold" style="margin-bottom:4px">🧮 R-multiple qoidasi</div>
+                  <div class="text-dim">Har bir bitimni R (risk birligi)da o'lchang: +2R foyda = riskning 2 barobari. Statistikani R asosida yuritish hissiyotni kamaytiradi.</div>
+                </div>
+                <div>
+                  <div class="fw-700 text-red" style="margin-bottom:4px">🚫 Eng Ko'p Uchraydigan Xatolar</div>
+                  <div class="text-dim">Stop Loss qo'ymaslik, oshiqcha lot, revenge trading, planga rioya qilmaslik, muhim newsda savdo, overtrading</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2953,33 +3053,84 @@ body.ux-clicking #ux-cursor-dot { transform: scale(1.8); background: #3B82F6; }
         </div>
       </div>
       <div class="page" id="page-strategies">
-        <div class="grid-4" id="strat-summary" style="margin-bottom:16px"></div>
-        <div class="flex-between" style="margin-bottom:16px;flex-wrap:wrap;gap:12px">
-          <div class="tabs" style="margin:0;border:none">
-            <button class="tab active" onclick="filterStrat('all',this)">Barchasi</button>
-            <button class="tab" onclick="filterStrat('scalping',this)">Scalping</button>
-            <button class="tab" onclick="filterStrat('swing',this)">Swing</button>
-            <button class="tab" onclick="filterStrat('trend',this)">Trend</button>
-            <button class="tab" onclick="filterStrat('reversal',this)">Reversal</button>
-            <button class="tab" onclick="filterStrat('breakout',this)">Breakout</button>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <input class="form-input" id="strat-search" placeholder="🔍 Strategiya qidirish..." style="width:190px" oninput="renderStrategies()">
-            <select class="form-select" id="strat-sort" style="width:170px" onchange="renderStrategies()">
-              <option value="new">Yangi qo'shilgan</option>
-              <option value="pnl">Net P&L bo'yicha</option>
-              <option value="winrate">Win Rate bo'yicha</option>
-              <option value="trades">Bitimlar soni bo'yicha</option>
-              <option value="name">Nomi (A-Z)</option>
-            </select>
-            <button class="btn btn-primary" onclick="openModal('stratModal')">➕ Strategiya Qo'shish</button>
-          </div>
+        <div class="tabs" style="margin-bottom:18px" id="strat-maintabs">
+          <button class="tab active" onclick="switchStratTab('mine',this)">📁 Mening Strategiyalarim</button>
+          <button class="tab" onclick="switchStratTab('lib',this)">📚 Strategiyalar Kutubxonasi</button>
         </div>
-        <div class="grid-3" id="strat-grid"></div>
+
+        <div id="mystrat-panel">
+          <div class="grid-4" id="strat-summary" style="margin-bottom:16px"></div>
+          <div class="flex-between" style="margin-bottom:16px;flex-wrap:wrap;gap:12px">
+            <div class="tabs" style="margin:0;border:none">
+              <button class="tab active" onclick="filterStrat('all',this)">Barchasi</button>
+              <button class="tab" onclick="filterStrat('scalping',this)">Scalping</button>
+              <button class="tab" onclick="filterStrat('swing',this)">Swing</button>
+              <button class="tab" onclick="filterStrat('trend',this)">Trend</button>
+              <button class="tab" onclick="filterStrat('reversal',this)">Reversal</button>
+              <button class="tab" onclick="filterStrat('breakout',this)">Breakout</button>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input class="form-input" id="strat-search" placeholder="🔍 Strategiya qidirish..." style="width:190px" oninput="renderStrategies()">
+              <select class="form-select" id="strat-sort" style="width:170px" onchange="renderStrategies()">
+                <option value="new">Yangi qo'shilgan</option>
+                <option value="pnl">Net P&L bo'yicha</option>
+                <option value="winrate">Win Rate bo'yicha</option>
+                <option value="trades">Bitimlar soni bo'yicha</option>
+                <option value="name">Nomi (A-Z)</option>
+              </select>
+              <button class="btn btn-primary" onclick="openModal('stratModal')">➕ Strategiya Qo'shish</button>
+            </div>
+          </div>
+          <div class="grid-3" id="strat-grid"></div>
+        </div>
+
+        <div id="libstrat-panel" style="display:none">
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title">📚 Mashhur Trading Strategiyalari — Bilimlar Bazasi</div>
+            <div class="text-muted text-sm" style="margin-top:6px;line-height:1.6">ICT, Smart Money Concepts va klassik texnik tahlil strategiyalari haqida to'liq ma'lumot: kirish/chiqish qoidalari, risk boshqaruvi, afzallik/kamchiliklari. O'rganib, o'zingizga moslab "Mening Strategiyalarim"ga qo'shishingiz mumkin.</div>
+          </div>
+          <div class="flex-between" style="margin-bottom:16px;flex-wrap:wrap;gap:12px">
+            <div class="tabs" style="margin:0;border:none" id="libstrat-filter-tabs">
+              <button class="tab active" onclick="filterLibStrat('all',this)">Barchasi</button>
+              <button class="tab" onclick="filterLibStrat('ict',this)">🧊 ICT / SMC</button>
+              <button class="tab" onclick="filterLibStrat('trend',this)">📈 Trend</button>
+              <button class="tab" onclick="filterLibStrat('reversal',this)">↩️ Reversal</button>
+              <button class="tab" onclick="filterLibStrat('breakout',this)">💥 Breakout</button>
+              <button class="tab" onclick="filterLibStrat('other',this)">🧩 Boshqa</button>
+            </div>
+            <input class="form-input" id="libstrat-search" placeholder="🔍 Kutubxonadan qidirish..." style="width:210px" oninput="renderLibStrategies()">
+          </div>
+          <div class="grid-3" id="libstrat-grid"></div>
+        </div>
       </div>
 
       <!-- ════ GOALS / MAQSADLAR ════ -->
       <div class="page" id="page-goals">
+        <div class="grid-2" style="margin-bottom:20px">
+          <div class="card">
+            <div class="card-title">🏆 Umumiy Hisob Maqsadi</div>
+            <div class="form-group mt-16" style="margin-bottom:10px">
+              <input class="form-input" id="g-account-target" type="number" placeholder="20000" oninput="saveGoals()">
+            </div>
+            <div class="flex-between text-sm mb-1">
+              <span class="text-muted">Joriy balans: <span id="g-account-cur">$0.00</span></span>
+              <span class="text-muted" id="g-account-pct">0%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="g-account-bar" style="width:0%;background:var(--gold)"></div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">🎯 Maqsadli Win Rate</div>
+            <div class="form-group mt-16" style="margin-bottom:10px">
+              <input class="form-input" id="g-targetwr" type="number" placeholder="60" min="0" max="100" oninput="saveGoals()">
+            </div>
+            <div class="flex-between text-sm mb-1">
+              <span class="text-muted">Joriy: <span id="g-actualwr-cur">0%</span></span>
+              <span class="text-muted" id="g-wr-diff">—</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="g-wr-bar" style="width:0%;background:var(--blue)"></div></div>
+          </div>
+        </div>
+
         <div class="grid-3" style="margin-bottom:20px">
           <div class="card">
             <div class="card-title">📅 Kunlik Maqsad ($)</div>
@@ -3016,23 +3167,51 @@ body.ux-clicking #ux-cursor-dot { transform: scale(1.8); background: #3B82F6; }
           </div>
         </div>
 
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-title">🛡️ Zarar Limitlari (Drawdown Nazorati)</div>
+          <div class="grid-3" style="margin-top:14px;gap:16px">
+            <div>
+              <div class="text-sm text-muted mb-1">Kunlik limit ($)</div>
+              <input class="form-input" id="g-maxloss" type="number" placeholder="200" oninput="saveGoals()">
+              <div class="flex-between text-sm mt-8"><span class="text-muted">Bugungi zarar</span><span class="fw-700" id="g-loss-cur">$0.00</span></div>
+              <div class="progress-bar mt-8"><div class="progress-fill" id="g-loss-bar" style="width:0%;background:var(--red)"></div></div>
+            </div>
+            <div>
+              <div class="text-sm text-muted mb-1">Haftalik limit ($)</div>
+              <input class="form-input" id="g-weeklymaxloss" type="number" placeholder="600" oninput="saveGoals()">
+              <div class="flex-between text-sm mt-8"><span class="text-muted">Shu haftagi zarar</span><span class="fw-700" id="g-wloss-cur">$0.00</span></div>
+              <div class="progress-bar mt-8"><div class="progress-fill" id="g-wloss-bar" style="width:0%;background:var(--red)"></div></div>
+            </div>
+            <div>
+              <div class="text-sm text-muted mb-1">Oylik limit ($)</div>
+              <input class="form-input" id="g-monthlymaxloss" type="number" placeholder="2000" oninput="saveGoals()">
+              <div class="flex-between text-sm mt-8"><span class="text-muted">Shu oygi zarar</span><span class="fw-700" id="g-mloss-cur">$0.00</span></div>
+              <div class="progress-bar mt-8"><div class="progress-fill" id="g-mloss-bar" style="width:0%;background:var(--red)"></div></div>
+            </div>
+          </div>
+          <div id="g-loss-status" class="mt-16" style="background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.2);border-radius:10px;padding:12px">
+            <div class="text-sm" id="g-loss-msg" style="color:var(--green)">✅ Limit ichida — savdoni davom ettirsa bo'ladi</div>
+          </div>
+        </div>
+
         <div class="grid-2" style="margin-bottom:20px">
           <div class="card">
-            <div class="card-title">🛡️ Kunlik Zarar Limiti</div>
-            <div class="form-group mt-16" style="margin-bottom:10px">
-              <input class="form-input" id="g-maxloss" type="number" placeholder="200" oninput="saveGoals()">
-            </div>
-            <div id="g-loss-status" class="card" style="background:rgba(0,212,170,0.06);border-color:rgba(0,212,170,0.2);margin-top:6px">
-              <div class="flex-between">
-                <span class="text-sm text-muted">Bugungi zarar</span>
-                <span class="fw-700" id="g-loss-cur">$0.00</span>
+            <div class="card-title">🚦 Savdo Intizomi Limitlari</div>
+            <div style="display:flex;flex-direction:column;gap:16px;margin-top:12px">
+              <div>
+                <div class="flex-between text-sm mb-1"><span class="text-muted">Kunlik max bitimlar (overtrading nazorati)</span><span class="fw-700" id="g-trades-cur">0 / —</span></div>
+                <input class="form-input" id="g-maxtrades" type="number" placeholder="5" oninput="saveGoals()" style="width:110px">
+                <div class="progress-bar mt-8"><div class="progress-fill" id="g-trades-bar" style="width:0%;background:var(--blue)"></div></div>
               </div>
-              <div class="progress-bar mt-8"><div class="progress-fill" id="g-loss-bar" style="width:0%;background:var(--red)"></div></div>
-              <div class="text-sm mt-8" id="g-loss-msg" style="color:var(--green)">✅ Limit ichida — savdoni davom ettirsa bo'ladi</div>
+              <div>
+                <div class="flex-between text-sm mb-1"><span class="text-muted">Max ketma-ket zarar (circuit breaker)</span><span class="fw-700" id="g-consec-cur">0 / —</span></div>
+                <input class="form-input" id="g-maxconsec" type="number" placeholder="3" oninput="saveGoals()" style="width:110px">
+                <div class="text-sm mt-8" id="g-consec-msg" style="color:var(--green)">✅ Xavfsiz zonada</div>
+              </div>
             </div>
           </div>
           <div class="card">
-            <div class="card-title">🔥 Streak va Disiplina</div>
+            <div class="card-title">🔥 Streak va Statistika</div>
             <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
               <div class="flex-between text-sm">
                 <span class="text-muted">Joriy g'alaba seriyasi</span>
@@ -3052,6 +3231,20 @@ body.ux-clicking #ux-cursor-dot { transform: scale(1.8); background: #3B82F6; }
               </div>
             </div>
           </div>
+        </div>
+
+        <div class="card">
+          <div class="flex-between" style="margin-bottom:10px;flex-wrap:wrap;gap:8px">
+            <div class="card-title" style="margin:0">📜 Shaxsiy Trading Kontrakti</div>
+            <button class="btn btn-outline" style="padding:6px 14px;font-size:12px" onclick="saveTradingContract()">💾 Saqlash</button>
+          </div>
+          <div class="text-muted text-sm" style="margin-bottom:10px">O'zingiz bilan tuzgan "shartnoma" — savdo qoidalaringizni yozib qo'ying, bu intizomni mustahkamlaydi va hissiy qarorlardan asraydi.</div>
+          <textarea class="form-textarea" id="g-contract" style="min-height:150px" placeholder="Masalan:
+1. Kuniga maksimal 3-5 ta bitim ochaman.
+2. Har bir bitimda riskim hisobning 1-2%idan oshmaydi.
+3. Pre-Trade Checklist 70%dan past bo'lsa, bitim ochmayman.
+4. Kunlik zarar limitiga yetsam, kompyuterni yopib, ertaga qaytaman.
+5. Ketma-ket 3 ta zararli bitimdan keyin savdoni to'xtataman."></textarea>
         </div>
       </div>
 
@@ -3389,7 +3582,7 @@ let strategies = JSON.parse(localStorage.getItem('tp-strategies') || JSON.string
   {id:1002,name:"Support & Resistance",type:"swing",desc:"Kuchli S/R darajalarida narx reaktsiyasidan foydalanish. Kirish: pin bar yoki engulfing mumkin'da.",win:62,rr:"1:2",trades:28,tags:["S/R","reversal","price action"]},
   {id:1003,name:"Breakout",type:"breakout",desc:"Konsolidatsiya yoki kanal chegarasini yorib o'tganda kirish. Volume tasdiqlashi shart.",win:55,rr:"1:3",trades:19,tags:["breakout","volatility","volume"]}
 ]));
-let goals = JSON.parse(localStorage.getItem('tp-goals') || '{"daily":100,"weekly":500,"monthly":2000,"maxloss":200}');
+let goals = JSON.parse(localStorage.getItem('tp-goals') || '{"daily":100,"weekly":500,"monthly":2000,"maxloss":200,"weeklymaxloss":600,"monthlymaxloss":2000,"maxtrades":5,"maxconsec":3,"targetwr":60,"accounttarget":20000}');
 let libFiles = {};
 
 // ─── INIT ───
@@ -3419,7 +3612,7 @@ function setupKeyboardShortcuts() {
       if(e.key==='s') { e.preventDefault(); saveTrade(); } // Ctrl+S = Save
       if(e.key==='k') { e.preventDefault(); toggleDarkMode(); } // Ctrl+K = Dark/Light
     }
-    if(e.key==='Escape') { closeModal('tradeModal'); closeModal('libModal'); closeModal('stratModal'); closeModal('viewModal'); closeModal('stratViewModal'); }
+    if(e.key==='Escape') { closeModal('tradeModal'); closeModal('libModal'); closeModal('stratModal'); closeModal('viewModal'); closeModal('stratViewModal'); closeModal('libStratViewModal'); }
   });
 }
 
@@ -4317,6 +4510,191 @@ function deleteCurrentLib() {
   renderLibrary();
 }
 
+// ─── STRATEGIES KUTUBXONASI (Bilimlar bazasi) ───
+const STRATEGY_LIBRARY = [
+  { id:'lib-1', name:'ICT Silver Bullet', cat:'ict', tf:'M15 / M1 (03:00–04:00 yoki 10:00–11:00 NY vaqti)', rr:'1:3+', win:'55-65%',
+    desc:'ICT (Inner Circle Trader) metodologiyasidagi vaqt-asosli strategiya. Belgilangan 1 soatlik oynada liquidity sweep va FVG orqali kirish qidiriladi.',
+    entry:['Belgilangan vaqt oynasida (masalan 10:00-11:00 NY) savdo qiling','HTF bias (H1/H4) yo\'nalishini aniqlang','Liquidity sweep kutib turing (eski high/low buzilishi)','Sweep’dan keyin paydo bo\'lgan Fair Value Gap’ga kiring','Kirish M1-M5 confirmationdan keyin amalga oshiriladi'],
+    exit:['SL — sweep bo\'lgan swing nuqtadan tashqarida','TP — keyingi liquidity darajasi yoki 1:3 R/R','Vaqt oynasi tugasa, pozitsiya ochilmagan bo\'lsa kutish bekor qilinadi'],
+    pros:['Aniq vaqt oynasi — intizomni oshiradi','Yuqori R/R potensiali','Kam vaqt sarflanadi (kuniga 1 soat)'],
+    cons:['Faqat ma\'lum vaqt oynasida ishlaydi','Tajriba talab qiladi (FVG/liquidity aniqlash)','Yuqori volatillikda risk oshadi'],
+    tags:['ICT','FVG','liquidity','time-based'] },
+  { id:'lib-2', name:'ICT Optimal Trade Entry (OTE)', cat:'ict', tf:'H4 / H1 / M15', rr:'1:3', win:'55-60%',
+    desc:'Fibonacci retracementning 62%-79% zonasidan (OTE zonasi) market structure bilan birga kirish strategiyasi.',
+    entry:['HTF’da aniq impulsiv harakat (BOS) aniqlanadi','Fibonacci 0-1 impuls to\'lqiniga chiziladi','Narx 62%-79% (OTE) zonaga qaytishi kutiladi','OTE zonada order block yoki FVG bilan tasdiqlanadi','LTF’da CHoCH confirmationi bilan kirish'],
+    exit:['SL — OTE zonadan tashqarida (impuls boshlanish nuqtasi ortida)','TP1 — 1:2, TP2 — oldingi high/low (liquidity)','Qisman yopish strategiyasi tavsiya etiladi'],
+    pros:['Yuqori aniqlikdagi kirish zonasi','Aniq matematik asos (Fibonacci)','Trend davomida ko\'p marta ishlatish mumkin'],
+    cons:['Impulsni to\'g\'ri aniqlash tajriba talab qiladi','Yon bozorda (range) samarasiz'],
+    tags:['ICT','Fibonacci','OTE','trend'] },
+  { id:'lib-3', name:'Order Block (Smart Money Concepts)', cat:'ict', tf:'H4 / H1 / M15', rr:'1:2.5', win:'55-62%',
+    desc:'Institutsional order oqimi qoldirgan "order block" — katta impulsdan oldingi qarama-qarshi sham — ga qaytganda savdo qilish.',
+    entry:['BOS (Break of Structure) orqali trend yo\'nalishi tasdiqlanadi','Impulsdan oldingi oxirgi qarama-qarshi sham (order block) belgilanadi','Narx OB zonasiga qaytishini kutish','OB zonada past taymfreymda confirmation izlash'],
+    exit:['SL — OB zonasidan pastda/yuqorida (buffer bilan)','TP — keyingi structure darajasi yoki 1:2.5+'],
+    pros:['Institutsional mantiqqa asoslangan','Aniq va takrorlanuvchi setup','Har qanday bozorda ishlaydi (forex, crypto, indeks)'],
+    cons:['Ko\'p "false" order blocklar bo\'lishi mumkin','Grafikni o\'qish tajribasi talab qiladi'],
+    tags:['SMC','order block','institutional'] },
+  { id:'lib-4', name:'Liquidity Sweep / Judas Swing', cat:'ict', tf:'H1 / M15', rr:'1:3', win:'50-60%',
+    desc:'Bozor ochilishida soxta harakat (Judas Swing) orqali retail traderlarni "aldab", keyin haqiqiy yo\'nalishga qaytadi.',
+    entry:['London/NY sessiya ochilishini kuzating','Dastlabki soxta breakout (liquidity sweep) ni aniqlang','Narx asosiy rangega qaytganda tasdiqlang (CHoCH)','Qarama-qarshi yo\'nalishda kirish'],
+    exit:['SL — sweep bo\'lgan ekstremumdan tashqarida','TP — kunlik range yoki qarama-qarshi liquidity'],
+    pros:['Sessiya ochilishidagi keng tarqalgan pattern','Yuqori R/R imkoniyati'],
+    cons:['Har kuni sodir bo\'lavermaydi','False signal ehtimoli yuqori'],
+    tags:['ICT','session','reversal','liquidity'] },
+  { id:'lib-5', name:'Turtle Soup (Reversal)', cat:'reversal', tf:'H1 / H4 / D1', rr:'1:2.5', win:'50-58%',
+    desc:'Klassik 20-kunlik high/low buzilishidan so\'ng yuzaga keladigan soxta breakoutga qarshi savdo qilish strategiyasi (Turtle Trading’ning teskarisi).',
+    entry:['Oxirgi 20 davr high/low’ini aniqlang','Narx shu darajani ozgina buzib o\'tishini kuting (false breakout)','Darrov qaytish (rejection) signalini tasdiqlang','Qarama-qarshi yo\'nalishda kirish'],
+    exit:['SL — yangi ekstremumdan tashqarida','TP — range o\'rtasi yoki qarama-qarshi daraja'],
+    pros:['Sodda va aniq qoidalar','Range bozorlarda yaxshi ishlaydi'],
+    cons:['Kuchli trendda ko\'p soxta signal berishi mumkin'],
+    tags:['reversal','breakout-fade','classic'] },
+  { id:'lib-6', name:'EMA Crossover (Trend Following)', cat:'trend', tf:'H1 / H4', rr:'1:2.5', win:'55-65%',
+    desc:'Ikki eksponensial harakatlanuvchi o\'rtacha (masalan EMA20/EMA50) kesishuvi asosida trend yo\'nalishida savdo.',
+    entry:['EMA20 EMA50’ni yuqoriga kesib o\'tsa — BUY, pastga kesib o\'tsa — SELL','MACD yoki RSI bilan momentum tasdiqlanadi','Kesishuv nuqtasidan keyingi pullbackda kirish tavsiya etiladi'],
+    exit:['SL — so\'nggi swing nuqtadan tashqarida','TP — 1:2.5 yoki qarama-qarshi EMA kesishuvigacha','Trailing stop EMA bo\'ylab qo\'llash mumkin'],
+    pros:['Sodda, mexanik va avtomatlashtirish oson','Kuchli trendlarda juda samarali'],
+    cons:['Yon bozorda (range) ko\'p soxta signal beradi','Kechikish (lag) muammosi bor'],
+    tags:['trend','EMA','MACD','indicator'] },
+  { id:'lib-7', name:'MACD Momentum', cat:'trend', tf:'H1 / H4 / D1', rr:'1:2', win:'52-60%',
+    desc:'MACD chizig\'i va signal chizig\'i kesishuvi, hamda histogram orqali momentum o\'zgarishini aniqlash strategiyasi.',
+    entry:['MACD signal chizig\'ini kesib o\'tsa kirish signali','Histogram kuchayishi momentumni tasdiqlaydi','HTF trend yo\'nalishi bilan mos kelishi kerak'],
+    exit:['SL — so\'nggi lokal ekstremum','TP — qarama-qarshi kesishuv yoki 1:2 R/R'],
+    pros:['Momentum o\'zgarishini erta ko\'rsatadi','Boshqa indikatorlar bilan yaxshi kombinatsiya beradi'],
+    cons:['Flet bozorda ko\'p yolg\'on signal','Kechikuvchi indikator'],
+    tags:['MACD','momentum','indicator'] },
+  { id:'lib-8', name:'RSI Divergence (Reversal)', cat:'reversal', tf:'H1 / H4 / D1', rr:'1:2.5', win:'50-58%',
+    desc:'Narx va RSI o\'rtasidagi divergensiya (kelishmovchilik) orqali trend zaiflashuvi va mumkin bo\'lgan reversalni aniqlash.',
+    entry:['Narx yangi high/low yasaydi, lekin RSI buni tasdiqlamaydi (divergensiya)','Divergensiya candlestick tasdiqlash patterni bilan birga bo\'lishi kerak','RSI 70/30 zonasidan chiqishi qo\'shimcha signal'],
+    exit:['SL — divergensiya yasalgan ekstremumdan tashqarida','TP — oldingi muhim S/R darajasi'],
+    pros:['Trend tugashini erta aniqlaydi','Ko\'p bozorlarda ishlaydi'],
+    cons:['Kuchli trendda divergensiya uzoq davom etishi mumkin (erta kirish xavfi)'],
+    tags:['RSI','divergence','reversal','indicator'] },
+  { id:'lib-9', name:'Bollinger Band Squeeze', cat:'breakout', tf:'H1 / H4', rr:'1:2.5', win:'50-58%',
+    desc:'Bollinger bandlarning torayishi (squeeze) past volatillikni bildiradi va odatda kuchli breakout’dan oldin sodir bo\'ladi.',
+    entry:['Bandlar torayganda (squeeze) kuzating','Narx bandlardan birini kuchli hajm bilan yorib o\'tishini kuting','Retest bo\'lganda kirish qo\'shimcha tasdiq beradi'],
+    exit:['SL — band ichkarisiga qaytish','TP — band kengligiga teng masofa yoki trailing'],
+    pros:['Volatillik siklini aniq ko\'rsatadi','Breakout strategiyalari uchun ideal filtr'],
+    cons:['Soxta breakout (fakeout) xavfi yuqori'],
+    tags:['Bollinger','volatility','breakout','indicator'] },
+  { id:'lib-10', name:'Support & Resistance Bounce', cat:'other', tf:'Har qanday', rr:'1:2', win:'55-62%',
+    desc:'Klassik price action strategiyasi: narx muhim S/R darajasidan qaytganda (bounce) savdo qilish.',
+    entry:['Kamida 2-3 marta test qilingan kuchli S/R darajasini aniqlang','Darajada rejection candlestick (pin bar, engulfing) kutish','Volume tasdiqlashi qo\'shimcha ishonch beradi'],
+    exit:['SL — daraja ortida (kichik buffer bilan)','TP — keyingi S/R darajasi'],
+    pros:['Universal va tushunish oson','Ko\'p bozor va taymfreymda ishlaydi'],
+    cons:['Daraja buzilganda katta zarar xavfi','Darajani to\'g\'ri chizish tajriba talab qiladi'],
+    tags:['S/R','price action','classic'] },
+  { id:'lib-11', name:'Fibonacci Retracement (Pullback)', cat:'trend', tf:'H1 / H4 / D1', rr:'1:2.5', win:'52-60%',
+    desc:'Trend davomidagi pullback chuqurligini Fibonacci darajalari (38.2%, 50%, 61.8%) yordamida o\'lchab, trend yo\'nalishida kirish.',
+    entry:['Aniq trend (impuls) mavjudligini tasdiqlang','Fibonacci’ni impuls boshi-oxiriga chizing','Narx 38.2-61.8% zonaga qaytganda confirmation izlang'],
+    exit:['SL — 78.6% darajasidan tashqarida','TP — oldingi high/low yoki Fibonacci extension (127%, 161%)'],
+    pros:['Trend ichida qo\'shimcha kirish nuqtalarini beradi','Matematik asoslangan aniq zonalar'],
+    cons:['Qaysi darajada qaytish aniq bo\'lmasligi mumkin','Kuchli trendda chuqur pullback bo\'lmasligi mumkin'],
+    tags:['Fibonacci','pullback','trend'] },
+  { id:'lib-12', name:'Supply & Demand Zones', cat:'other', tf:'H1 / H4 / D1', rr:'1:3', win:'55-62%',
+    desc:'Narx keskin ko\'tarilgan/tushgan zonalarni (demand/supply) belgilab, narx qaytganda institutsional mantiq bilan savdo qilish.',
+    entry:['Keskin, tez harakatdan oldingi konsolidatsiya zonasini toping (demand/supply)','Narx shu zonaga qaytishini kuting','Zonada rejection yoki LTF confirmation izlang'],
+    exit:['SL — zona chetidan tashqarida','TP — qarama-qarshi zona yoki 1:3 R/R'],
+    pros:['Order block konsepsiyasiga yaqin, keng qo\'llaniladi','Aniq va vizual jihatdan tushunarli'],
+    cons:['Eski zonalar vaqt o\'tishi bilan kuchini yo\'qotadi','Zonani noto\'g\'ri chizish xatolarga olib keladi'],
+    tags:['supply-demand','zones','institutional'] },
+  { id:'lib-13', name:'Breakout & Retest', cat:'breakout', tf:'H1 / H4 / D1', rr:'1:2.5', win:'52-60%',
+    desc:'Muhim darajaning (trendline, S/R, kanal) yorib o\'tilishi va keyin shu darajani qayta test qilishidan foydalanish.',
+    entry:['Muhim darajaning kuchli hajm bilan buzilishini kuzating','Narxning o\'sha darajaga qaytib retest qilishini kuting','Retestda rejection confirmation bilan kirish'],
+    exit:['SL — retest darajasidan tashqarida','TP — breakout hajmiga teng masofa (measured move)'],
+    pros:['Fakeoutlarni filtrlaydi (breakoutdan darhol kirishdan ko\'ra xavfsizroq)','Aniq va mantiqiy struktura'],
+    cons:['Har doim ham retest bo\'lavermaydi (imkoniyat qochib ketishi mumkin)'],
+    tags:['breakout','retest','structure'] },
+  { id:'lib-14', name:'Wyckoff Accumulation / Distribution', cat:'other', tf:'H4 / D1', rr:'1:3+', win:'50-58%',
+    desc:'Wyckoff metodologiyasi — narx bozor fazalari (accumulation, markup, distribution, markdown) orqali institutsional pul oqimini aniqlash.',
+    entry:['Accumulation/distribution rangeni aniqlang (Spring/Upthrust)','Spring (soxta pastga sweep) yoki Upthrust (soxta yuqoriga sweep) ni kuting','Sign of Strength/Weakness bilan tasdiqlang','Markup/markdown fazasi boshlanganda kirish'],
+    exit:['SL — range ekstremumidan tashqarida','TP — keyingi struktura darajasi yoki trend davomida trailing'],
+    pros:['Institutsional xatti-harakatni chuqur tushunishga yordam beradi','Uzoq muddatli pozitsiyalar uchun kuchli asos'],
+    cons:['Fazalarni aniqlash murakkab va tajriba talab qiladi','Vaqt talab qiluvchi tahlil'],
+    tags:['Wyckoff','accumulation','institutional'] }
+];
+let libStratFilter = 'all';
+let currentLibStratId = null;
+
+function switchStratTab(tab, el) {
+  document.querySelectorAll('#strat-maintabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('mystrat-panel').style.display = tab==='mine' ? '' : 'none';
+  document.getElementById('libstrat-panel').style.display = tab==='lib' ? '' : 'none';
+  if(tab==='lib') renderLibStrategies();
+}
+
+function filterLibStrat(f, el) {
+  libStratFilter = f;
+  document.querySelectorAll('#libstrat-filter-tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderLibStrategies();
+}
+
+function renderLibStrategies() {
+  const grid = document.getElementById('libstrat-grid');
+  if(!grid) return;
+  const search = (document.getElementById('libstrat-search')?.value || '').trim().toLowerCase();
+  let data = STRATEGY_LIBRARY;
+  if(libStratFilter !== 'all') data = data.filter(s => s.cat === libStratFilter);
+  if(search) data = data.filter(s => s.name.toLowerCase().includes(search) || s.tags.some(t=>t.toLowerCase().includes(search)));
+  const catColors = {ict:'#A78BFA',trend:'var(--green)',reversal:'var(--gold)',breakout:'#3B82F6',other:'var(--text-muted)'};
+  const catLabels = {ict:'ICT / SMC',trend:'Trend',reversal:'Reversal',breakout:'Breakout',other:'Boshqa'};
+  if(!data.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-muted)">🔍 Hech narsa topilmadi.</div>`;
+    return;
+  }
+  grid.innerHTML = data.map(s => `
+    <div class="strategy-card" onclick="openLibStratView('${s.id}')" style="cursor:pointer">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div>
+          <span style="font-size:10px;font-weight:700;color:${catColors[s.cat]};text-transform:uppercase;letter-spacing:.8px;background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:20px">${catLabels[s.cat]}</span>
+          <div class="strategy-name" style="margin-top:8px">${s.name}</div>
+          <div class="text-muted text-sm" style="margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${s.desc}</div>
+        </div>
+      </div>
+      <div class="strategy-stats">
+        <div class="st-stat"><div class="st-val text-gold" style="font-size:13px">${s.rr}</div><div class="st-lbl">R/R</div></div>
+        <div class="st-stat"><div class="st-val text-green" style="font-size:13px">${s.win}</div><div class="st-lbl">Odatiy WR</div></div>
+        <div class="st-stat"><div class="st-val" style="font-size:11px">${s.tf.split(' ')[0]}</div><div class="st-lbl">TF</div></div>
+      </div>
+      <div class="lib-tags" style="margin-top:10px">${s.tags.map(t=>`<span class="lib-tag">${t}</span>`).join('')}</div>
+    </div>`).join('');
+}
+
+function openLibStratView(id) {
+  const s = STRATEGY_LIBRARY.find(s=>s.id===id);
+  if(!s) return;
+  currentLibStratId = id;
+  document.getElementById('ls-name').textContent = s.name;
+  document.getElementById('ls-win').textContent = s.win;
+  document.getElementById('ls-rr').textContent = s.rr;
+  document.getElementById('ls-tf').textContent = s.tf;
+  document.getElementById('ls-desc').textContent = s.desc;
+  document.getElementById('ls-entry').innerHTML = s.entry.map(e=>`<li>${e}</li>`).join('');
+  document.getElementById('ls-exit').innerHTML = s.exit.map(e=>`<li>${e}</li>`).join('');
+  document.getElementById('ls-pros').innerHTML = s.pros.map(e=>`<li>${e}</li>`).join('');
+  document.getElementById('ls-cons').innerHTML = s.cons.map(e=>`<li>${e}</li>`).join('');
+  document.getElementById('ls-tags').innerHTML = s.tags.map(t=>`<span class="lib-tag">${t}</span>`).join('');
+  openModal('libStratViewModal');
+}
+
+function addLibStratToMine() {
+  const s = STRATEGY_LIBRARY.find(s=>s.id===currentLibStratId);
+  if(!s) return;
+  closeModal('libStratViewModal');
+  editStratId = null;
+  document.getElementById('strat-modal-title').textContent = '⚡ Yangi Strategiya';
+  document.getElementById('st-name').value = s.name;
+  const catMap = {ict:'trend',trend:'trend',reversal:'reversal',breakout:'breakout',other:'swing'};
+  document.getElementById('st-type').value = catMap[s.cat] || 'trend';
+  document.getElementById('st-rr').value = s.rr;
+  const winNum = parseInt(s.win) || 55;
+  document.getElementById('st-win').value = winNum;
+  document.getElementById('st-desc').value = s.desc + '\n\nKirish qoidalari:\n- ' + s.entry.join('\n- ') + '\n\nChiqish/Risk qoidalari:\n- ' + s.exit.join('\n- ');
+  document.getElementById('st-tags').value = s.tags.join(', ');
+  openModal('stratModal');
+  showToast('📚 Kutubxonadan ma\'lumot yuklandi — tahrirlab saqlang');
+}
+
 // ─── STRATEGIES ───
 let stratFilter = 'all';
 let currentStratId = null;
@@ -4521,16 +4899,35 @@ function initGoalsInputs() {
   document.getElementById('g-weekly').value = goals.weekly || '';
   document.getElementById('g-monthly').value = goals.monthly || '';
   document.getElementById('g-maxloss').value = goals.maxloss || '';
+  document.getElementById('g-weeklymaxloss').value = goals.weeklymaxloss || '';
+  document.getElementById('g-monthlymaxloss').value = goals.monthlymaxloss || '';
+  document.getElementById('g-maxtrades').value = goals.maxtrades || '';
+  document.getElementById('g-maxconsec').value = goals.maxconsec || '';
+  document.getElementById('g-targetwr').value = goals.targetwr || '';
+  document.getElementById('g-account-target').value = goals.accounttarget || '';
+  const contractEl = document.getElementById('g-contract');
+  if(contractEl) contractEl.value = localStorage.getItem('tp-contract') || '';
 }
 function saveGoals() {
   goals = {
     daily: parseFloat(document.getElementById('g-daily').value)||0,
     weekly: parseFloat(document.getElementById('g-weekly').value)||0,
     monthly: parseFloat(document.getElementById('g-monthly').value)||0,
-    maxloss: parseFloat(document.getElementById('g-maxloss').value)||0
+    maxloss: parseFloat(document.getElementById('g-maxloss').value)||0,
+    weeklymaxloss: parseFloat(document.getElementById('g-weeklymaxloss').value)||0,
+    monthlymaxloss: parseFloat(document.getElementById('g-monthlymaxloss').value)||0,
+    maxtrades: parseFloat(document.getElementById('g-maxtrades').value)||0,
+    maxconsec: parseFloat(document.getElementById('g-maxconsec').value)||0,
+    targetwr: parseFloat(document.getElementById('g-targetwr').value)||0,
+    accounttarget: parseFloat(document.getElementById('g-account-target').value)||0
   };
   localStorage.setItem('tp-goals', JSON.stringify(goals));
   renderGoals();
+}
+function saveTradingContract() {
+  const text = document.getElementById('g-contract').value;
+  localStorage.setItem('tp-contract', text);
+  showToast('📜 Trading kontrakti saqlandi');
 }
 function parseTradeDate(t) {
   const p = (t.date||'').split('.');
@@ -4556,24 +4953,93 @@ function renderGoals() {
   setGoalBar('monthly', monthlyPnl, goals.monthly);
   setEl('g-today-count', todayCount);
 
-  // Daily loss limit
+  // ── Umumiy hisob maqsadi ──
+  const startBalance = settings.balance || 10000;
+  const totalPnlAll = trades.reduce((s,t)=>s+t.pnl,0);
+  const equity = startBalance + totalPnlAll;
+  const accTarget = goals.accounttarget || 0;
+  setEl('g-account-cur', fmt(equity));
+  const accPct = accTarget ? Math.max(Math.min(equity/accTarget*100,100),0) : 0;
+  setEl('g-account-pct', Math.round(accPct)+'%');
+  const accBar = document.getElementById('g-account-bar');
+  if(accBar) accBar.style.width = accPct+'%';
+
+  // ── Maqsadli win rate ──
+  const closedTrades = trades;
+  const actualWR = closedTrades.length ? Math.round(closedTrades.filter(t=>t.pnl>0).length/closedTrades.length*100) : 0;
+  setEl('g-actualwr-cur', actualWR+'%');
+  const targetWR = goals.targetwr || 0;
+  const wrPct = targetWR ? Math.max(Math.min(actualWR/targetWR*100,100),0) : 0;
+  const wrBar = document.getElementById('g-wr-bar');
+  if(wrBar) wrBar.style.width = wrPct+'%';
+  const wrDiffEl = document.getElementById('g-wr-diff');
+  if(wrDiffEl && targetWR) {
+    const diff = actualWR - targetWR;
+    wrDiffEl.textContent = (diff>=0?'+':'') + diff + '% maqsaddan';
+    wrDiffEl.style.color = diff>=0 ? 'var(--green)' : 'var(--text-muted)';
+  } else if(wrDiffEl) wrDiffEl.textContent = '—';
+
+  // ── Kunlik zarar limiti ──
   const todayLoss = Math.abs(Math.min(dailyPnl,0));
   const maxloss = goals.maxloss||0;
   const lossPct = maxloss ? Math.min(todayLoss/maxloss*100,100) : 0;
   setEl('g-loss-cur', fmt(-todayLoss));
   const lossBar = document.getElementById('g-loss-bar');
   if(lossBar) lossBar.style.width = lossPct+'%';
+
+  // ── Haftalik zarar limiti ──
+  const weekLoss = Math.abs(Math.min(weeklyPnl,0));
+  const weeklyMaxLoss = goals.weeklymaxloss||0;
+  const wLossPct = weeklyMaxLoss ? Math.min(weekLoss/weeklyMaxLoss*100,100) : 0;
+  setEl('g-wloss-cur', fmt(-weekLoss));
+  const wLossBar = document.getElementById('g-wloss-bar');
+  if(wLossBar) wLossBar.style.width = wLossPct+'%';
+
+  // ── Oylik zarar limiti ──
+  const monthLoss = Math.abs(Math.min(monthlyPnl,0));
+  const monthlyMaxLoss = goals.monthlymaxloss||0;
+  const mLossPct = monthlyMaxLoss ? Math.min(monthLoss/monthlyMaxLoss*100,100) : 0;
+  setEl('g-mloss-cur', fmt(-monthLoss));
+  const mLossBar = document.getElementById('g-mloss-bar');
+  if(mLossBar) mLossBar.style.width = mLossPct+'%';
+
+  // ── Umumiy limit statusi (eng jiddiy holatni ko'rsatish) ──
   const statusBox = document.getElementById('g-loss-status');
   const msgEl = document.getElementById('g-loss-msg');
-  if(maxloss && todayLoss>=maxloss) {
-    statusBox.style.background='rgba(255,71,87,0.08)'; statusBox.style.borderColor='rgba(255,71,87,0.3)';
-    msgEl.style.color='var(--red)'; msgEl.textContent="⛔ Kunlik zarar limitiga yetdingiz — bugun savdoni to'xtatish tavsiya etiladi";
-  } else if(maxloss && todayLoss>=maxloss*0.7) {
-    statusBox.style.background='rgba(201,168,76,0.08)'; statusBox.style.borderColor='rgba(201,168,76,0.3)';
-    msgEl.style.color='var(--gold)'; msgEl.textContent="⚠️ Limitga yaqinlashyapsiz — ehtiyot bo'ling";
-  } else {
-    statusBox.style.background='rgba(0,212,170,0.06)'; statusBox.style.borderColor='rgba(0,212,170,0.2)';
-    msgEl.style.color='var(--green)'; msgEl.textContent="✅ Limit ichida — savdoni davom ettirsa bo'ladi";
+  if(statusBox && msgEl) {
+    if((maxloss && todayLoss>=maxloss) || (weeklyMaxLoss && weekLoss>=weeklyMaxLoss) || (monthlyMaxLoss && monthLoss>=monthlyMaxLoss)) {
+      statusBox.style.background='rgba(255,71,87,0.08)'; statusBox.style.borderColor='rgba(255,71,87,0.3)';
+      msgEl.style.color='var(--red)'; msgEl.textContent="⛔ Zarar limitiga yetdingiz — savdoni to'xtatish tavsiya etiladi";
+    } else if((maxloss && todayLoss>=maxloss*0.7) || (weeklyMaxLoss && weekLoss>=weeklyMaxLoss*0.7) || (monthlyMaxLoss && monthLoss>=monthlyMaxLoss*0.7)) {
+      statusBox.style.background='rgba(201,168,76,0.08)'; statusBox.style.borderColor='rgba(201,168,76,0.3)';
+      msgEl.style.color='var(--gold)'; msgEl.textContent="⚠️ Limitga yaqinlashyapsiz — ehtiyot bo'ling";
+    } else {
+      statusBox.style.background='rgba(0,212,170,0.06)'; statusBox.style.borderColor='rgba(0,212,170,0.2)';
+      msgEl.style.color='var(--green)'; msgEl.textContent="✅ Barcha limitlar ichida — savdoni davom ettirsa bo'ladi";
+    }
+  }
+
+  // ── Kunlik max bitimlar (overtrading) ──
+  const maxTrades = goals.maxtrades||0;
+  setEl('g-trades-cur', todayCount + ' / ' + (maxTrades||'—'));
+  const tradesPct = maxTrades ? Math.min(todayCount/maxTrades*100,100) : 0;
+  const tradesBar = document.getElementById('g-trades-bar');
+  if(tradesBar) {
+    tradesBar.style.width = tradesPct+'%';
+    tradesBar.style.background = todayCount>=maxTrades && maxTrades ? 'var(--red)' : 'var(--blue)';
+  }
+
+  // ── Ketma-ket zararlar (circuit breaker) ──
+  const sortedAll = trades.slice().sort((a,b)=>(parseTradeDate(a)||0)-(parseTradeDate(b)||0));
+  let consecLoss = 0;
+  for(let i=sortedAll.length-1;i>=0;i--){ if(sortedAll[i].pnl<0) consecLoss++; else break; }
+  const maxConsec = goals.maxconsec||0;
+  setEl('g-consec-cur', consecLoss + ' / ' + (maxConsec||'—'));
+  const consecMsg = document.getElementById('g-consec-msg');
+  if(consecMsg) {
+    if(maxConsec && consecLoss>=maxConsec) { consecMsg.style.color='var(--red)'; consecMsg.textContent='⛔ Circuit breaker ishga tushdi — savdoni to\'xtating va tahlil qiling'; }
+    else if(maxConsec && consecLoss>=maxConsec-1) { consecMsg.style.color='var(--gold)'; consecMsg.textContent='⚠️ Diqqat — limitga 1 qadam qoldi'; }
+    else { consecMsg.style.color='var(--green)'; consecMsg.textContent='✅ Xavfsiz zonada'; }
   }
 
   // Win streak (consecutive days with positive net pnl)
@@ -5219,37 +5685,89 @@ function calcCompound() {
 }
 
 // ─── PRE-TRADE CHECKLIST ───
-const CHECKLIST_ITEMS = [
-  {id:'c1', label:'Higher Timeframe trend yo\'nalishi aniqlandi (HTF bias)'},
-  {id:'c2', label:'Liquidity sweep / stop hunt kuzatildi'},
-  {id:'c3', label:'Fair Value Gap (FVG) yoki Order Block mavjud'},
-  {id:'c4', label:'Kirish narxi to\'g\'ri sessiyada (London/NY)'},
-  {id:'c5', label:'Risk/Reward nisbati kamida 1:2'},
-  {id:'c6', label:'Stop Loss va Take Profit oldindan belgilangan'},
-  {id:'c7', label:'Risk — hisobning 1-2% dan oshmaydi'},
-  {id:'c8', label:'Hissiyot xotirjam (FOMO/revenge yo\'q)'},
-  {id:'c9', label:'Muhim iqtisodiy yangilik (news) yo\'q yoki hisobga olingan'}
+const CHECKLIST_CATEGORIES = [
+  { cat:'📊 Bozor Tahlili (Market Structure)', items:[
+    {id:'c1', label:'Higher Timeframe trend yo\'nalishi aniqlandi (HTF bias — D1/H4)', styles:['scalping','swing','position']},
+    {id:'c2', label:'Market structure: BOS (Break of Structure) yoki CHoCH aniqlangan', styles:['scalping','swing']},
+    {id:'c3', label:'Liquidity zonalari (buy-side/sell-side) belgilangan', styles:['scalping','swing']},
+    {id:'c4', label:'Muhim Support/Resistance darajalari chizilgan', styles:['scalping','swing','position']},
+    {id:'c5', label:'Multiple timeframe tahlili qilingan (HTF → LTF)', styles:['swing','position']}
+  ]},
+  { cat:'🎯 Kirish Sharti (Entry Setup)', items:[
+    {id:'c6', label:'Fair Value Gap (FVG) yoki Order Block mavjud', styles:['scalping','swing']},
+    {id:'c7', label:'Liquidity sweep / stop hunt kuzatildi (Judas Swing)', styles:['scalping','swing']},
+    {id:'c8', label:'Candlestick tasdiqlash patterni bor (engulfing, pin bar va h.k.)', styles:['scalping','swing','position']},
+    {id:'c9', label:'Volume yoki momentum tasdiqlangan', styles:['scalping','swing']},
+    {id:'c10', label:'Kirish narxi aniq trigger darajasida (OTE 62–79%)', styles:['scalping','swing']}
+  ]},
+  { cat:'⚖️ Risk Boshqaruvi (Risk Management)', items:[
+    {id:'c11', label:'Risk/Reward nisbati kamida 1:2', styles:['scalping','swing','position']},
+    {id:'c12', label:'Stop Loss va Take Profit oldindan belgilangan', styles:['scalping','swing','position']},
+    {id:'c13', label:'Pozitsiya hajmi (lot) risk foizi asosida hisoblangan', styles:['scalping','swing','position']},
+    {id:'c14', label:'Risk — hisobning 1-2% dan oshmaydi', styles:['scalping','swing','position']},
+    {id:'c15', label:'Kunlik zarar limiti hali oshmagan', styles:['scalping','swing','position']}
+  ]},
+  { cat:'🕐 Vaqt va Bozor Sharoiti (Timing & Context)', items:[
+    {id:'c16', label:'Kirish narxi to\'g\'ri sessiyada (London/NY overlap)', styles:['scalping']},
+    {id:'c17', label:'Muhim iqtisodiy yangilik (news) yo\'q yoki hisobga olingan', styles:['scalping','swing','position']},
+    {id:'c18', label:'Bozor spread/likvidligi normal holatda', styles:['scalping']},
+    {id:'c19', label:'Bugungi savdolar soni limitdan oshmagan', styles:['scalping','swing']}
+  ]},
+  { cat:'🧠 Psixologiya (Psychology & Discipline)', items:[
+    {id:'c20', label:'Hissiyot xotirjam (FOMO/revenge yo\'q)', styles:['scalping','swing','position']},
+    {id:'c21', label:'Bu bitim trading rejasiga to\'liq mos keladi', styles:['scalping','swing','position']},
+    {id:'c22', label:'Oldingi zararni "qoplash" maqsadi yo\'q', styles:['scalping','swing','position']}
+  ]}
 ];
+const CHECKLIST_ITEMS = CHECKLIST_CATEGORIES.flatMap(c=>c.items);
+let checklistTemplate = 'all';
+
+function setChecklistTemplate(t, el) {
+  checklistTemplate = t;
+  document.querySelectorAll('#checklist-template-tabs .tab').forEach(b=>{
+    b.classList.remove('active'); b.style.background=''; b.style.color='';
+  });
+  el.classList.add('active');
+  el.style.background = 'rgba(0,212,170,0.12)';
+  el.style.color = 'var(--green)';
+  renderChecklist();
+}
+
 function renderChecklist() {
   const saved = JSON.parse(localStorage.getItem('tp-checklist')||'{}');
   const wrap = document.getElementById('checklist-items');
-  wrap.innerHTML = CHECKLIST_ITEMS.map(item=>`
-    <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:8px;cursor:pointer">
-      <input type="checkbox" id="chk-${item.id}" ${saved[item.id]?'checked':''} onchange="updateChecklist()" style="width:16px;height:16px">
-      <span style="font-size:13.5px">${item.label}</span>
-    </label>`).join('');
+  wrap.innerHTML = CHECKLIST_CATEGORIES.map(group => {
+    const visibleItems = group.items.filter(item => checklistTemplate==='all' || item.styles.includes(checklistTemplate));
+    if(!visibleItems.length) return '';
+    return `<div>
+      <div class="text-muted text-sm fw-700" style="margin-bottom:8px;letter-spacing:.3px">${group.cat}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${visibleItems.map(item=>`
+          <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:8px;cursor:pointer">
+            <input type="checkbox" id="chk-${item.id}" ${saved[item.id]?'checked':''} onchange="updateChecklist()" style="width:16px;height:16px;flex-shrink:0">
+            <span style="font-size:13.5px">${item.label}</span>
+          </label>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
   updateChecklist();
+  renderChecklistHistory();
 }
+
 function updateChecklist() {
   const state = {};
-  let checked = 0;
+  let checked = 0, total = 0;
   CHECKLIST_ITEMS.forEach(item=>{
-    const v = document.getElementById('chk-'+item.id).checked;
+    const el = document.getElementById('chk-'+item.id);
+    if(!el) return; // hidden by template filter — keep previous saved state
+    total++;
+    const v = el.checked;
     state[item.id] = v;
     if(v) checked++;
   });
-  localStorage.setItem('tp-checklist', JSON.stringify(state));
-  const pct = Math.round(checked/CHECKLIST_ITEMS.length*100);
+  const prevSaved = JSON.parse(localStorage.getItem('tp-checklist')||'{}');
+  localStorage.setItem('tp-checklist', JSON.stringify({...prevSaved, ...state}));
+  const pct = total ? Math.round(checked/total*100) : 0;
   const scoreEl = document.getElementById('checklist-score');
   scoreEl.textContent = pct+'%';
   scoreEl.className = 'calc-result '+(pct>=70?'pos':pct>=40?'neu':'neg');
@@ -5258,6 +5776,30 @@ function updateChecklist() {
   else if(pct>=40) msgEl.textContent = '⚠️ Ehtiyot bo\'ling — ba\'zi shartlar yetishmaydi';
   else msgEl.textContent = '❌ Hozircha bitim ochish tavsiya etilmaydi';
 }
+
+function saveChecklistToHistory() {
+  const scoreEl = document.getElementById('checklist-score');
+  const pct = parseInt(scoreEl.textContent) || 0;
+  const history = JSON.parse(localStorage.getItem('tp-checklist-history')||'[]');
+  history.unshift({ pct, template:checklistTemplate, date:new Date().toISOString() });
+  localStorage.setItem('tp-checklist-history', JSON.stringify(history.slice(0,20)));
+  renderChecklistHistory();
+  showToast('📝 Tayyorlik natijasi saqlandi: '+pct+'%');
+}
+
+function renderChecklistHistory() {
+  const wrap = document.getElementById('checklist-history');
+  if(!wrap) return;
+  const history = JSON.parse(localStorage.getItem('tp-checklist-history')||'[]');
+  if(!history.length) { wrap.innerHTML = '<div class="text-muted text-sm">Hali saqlangan natija yo\'q</div>'; return; }
+  wrap.innerHTML = history.map(h=>{
+    const d = new Date(h.date);
+    const dstr = d.toLocaleDateString('uz-UZ',{day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('uz-UZ',{hour:'2-digit',minute:'2-digit'});
+    const color = h.pct>=70 ? 'var(--green)' : h.pct>=40 ? 'var(--gold)' : 'var(--red)';
+    return `<div class="flex-between text-sm" style="padding:4px 0"><span class="text-muted">${dstr}</span><span style="font-weight:700;color:${color}">${h.pct}%</span></div>`;
+  }).join('');
+}
+
 function resetChecklist() {
   localStorage.removeItem('tp-checklist');
   renderChecklist();
